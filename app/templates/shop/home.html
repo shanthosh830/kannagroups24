@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}{{ business_name }}{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <div class="hero-card">
+      <div>
+        <h1>
+          {% if lang == 'en' %}
+            Premium Computerized Embroidery & Bridal Studio in Sholinghur
+          {% else %}
+            சோளிங்கபுரம் பிரீமியம் எம்பிராய்டரி & மணமகள் ஸ்டூடியோ
+          {% endif %}
+        </h1>
+        <div class="hero-badge-row">
+          <span class="pill">
+            {% if lang == 'en' %}Custom Blouse & Chudi Designs{% else %}கஸ்டமைஸ் ப்ளவுஸ் & சூடி டிசைன்{% endif %}
+          </span>
+          <span class="pill">
+            {% if lang == 'en' %}Aari • Stitching • Bridal{% else %}ஆரி • தையல் • மணமகள்{% endif %}
+          </span>
+        </div>
+        <p class="muted">
+          {% if lang == 'en' %}
+            Browse our latest embroidery, Aari and bridal designs. Tap any design to zoom and view the price, just like shopping apps.
+          {% else %}
+            எங்கள் எம்பிராய்டரி, ஆரி மற்றும் மணமகள் டிசைன்களை பாருங்கள். டிசைனை அழுத்தி zoom செய்து விலையை எளிதாக பார்க்கலாம்.
+          {% endif %}
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="{{ url_for('public.services', lang=lang) }}">{{ 'Browse services & designs' if lang=='en' else 'அனைத்து சேவைகள் & டிசைன்கள்' }}</a>
+          {% if whatsapp %}
+            <a class="btn btn-outline" href="https://wa.me/{{ whatsapp | replace('+','') }}" target="_blank" rel="noreferrer">
+              {{ 'Chat on WhatsApp' if lang=='en' else 'WhatsApp-ல் பேச' }}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-grid">
+          <div class="hero-chip">
+            <strong>{% if lang=='en' %}Computerized Embroidery{% else %}கம்ப்யூட்டர் எம்பிராய்டரி{% endif %}</strong><br />
+            <span class="hero-tagline">{% if lang=='en' %}Clean stitch, neat finish{% else %}நேர்த்தியான தைக்குதல்{% endif %}</span>
+          </div>
+          <div class="hero-chip">
+            <strong>{% if lang=='en' %}Bridal Makeover{% else %}மணமகள் மேக்கப்{% endif %}</strong><br />
+            <span class="hero-tagline">{% if lang=='en' %}Head-to-toe bridal styling{% else %}முழு மணமகள் அலங்காரம்{% endif %}</span>
+          </div>
+          <div class="hero-chip">
+            <strong>{% if lang=='en' %}Silk Thread Bangles{% else %}சில்க் நூல் வளையல்கள்{% endif %}</strong><br />
+            <span class="hero-tagline">{% if lang=='en' %}Custom colours for every saree{% else %}உங்கள் சேலையுக்கு ஏற்ற நிறங்கள்{% endif %}</span>
+          </div>
+          <div class="hero-chip">
+            <strong>{% if lang=='en' %}Rental Bridal Jewels{% else %}வாடகை நகைகள்{% endif %}</strong><br />
+            <span class="hero-tagline">{% if lang=='en' %}Grand look, smart budget{% else %}அருமையான லுக், குறைந்த செலவு{% endif %}</span>
+          </div>
+        </div>
+        <p class="hero-tagline">
+          {% if lang == 'en' %}
+            Located in Sholinghur • Orders via WhatsApp across India
+          {% else %}
+            சோளிங்கபுரத்தில் அமைந்துள்ளது • WhatsApp மூலம் இந்தியா முழுவதும் ஆர்டர்
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-header">
+      <h2 class="section-title">{{ 'Services' if lang=='en' else 'சேவைகள்' }}</h2>
+      <span class="muted small">
+        {% if lang == 'en' %}Tap a service to explore designs{% else %}சேவையை தேர்வு செய்து டிசைன்களை பார்க்கவும்{% endif %}
+      </span>
+    </div>
+    <div class="grid">
+      {% for s in services %}
+        <a class="svc-card" href="{{ url_for('public.service_detail', slug=s.slug, lang=lang) }}">
+          <div class="svc-img svc-{{ s.slug|replace('-', '_') }}">
+            <div class="svc-overlay">
+              <div class="svc-icon">
+                {% if s.slug == 'embroidery' %}🧵{% elif s.slug == 'aari' %}🪡{% elif s.slug == 'stitching' %}🧶{% elif s.slug == 'bangles' %}💫{% elif s.slug == 'malai' %}🌺{% elif s.slug == 'womens-clothing' %}👗{% elif s.slug == 'rental-jewels' %}👑{% elif s.slug == 'bridal-makeup' %}💄{% else %}✨{% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="svc-body">
+            <div class="card-title">{{ s.name_en if lang=='en' else s.name_ta }}</div>
+            <div class="muted">{{ 'Tap to view designs' if lang=='en' else 'டிசைன்களை பார்க்க' }}</div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
+

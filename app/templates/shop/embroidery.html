@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Embroidery' if lang=='en' else 'எம்பிராய்டரி' }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ service.name_en if lang=='en' else service.name_ta }}</h1>
+    <p class="muted">{{ 'Choose a tab below.' if lang=='en' else 'கீழே ஒரு டேப் தேர்வு செய்யவும்.' }}</p>
+  </div>
+
+  <div class="tabs">
+    <a class="tab {{ 'active' if tab=='custom' else '' }}" href="{{ url_for('public.service_detail', slug='embroidery', lang=lang, tab='custom') }}">{{ 'Customized Design' if lang=='en' else 'கஸ்டமைஸ் டிசைன்' }}</a>
+    <a class="tab {{ 'active' if tab=='our' else '' }}" href="{{ url_for('public.service_detail', slug='embroidery', lang=lang, tab='our') }}">{{ 'Our Designs' if lang=='en' else 'எங்கள் டிசைன்கள்' }}</a>
+    <a class="tab {{ 'active' if tab=='new' else '' }}" href="{{ url_for('public.service_detail', slug='embroidery', lang=lang, tab='new') }}">{{ 'New Arrivals' if lang=='en' else 'புதிய டிசைன்கள்' }}</a>
+  </div>
+
+  {% if tab == 'custom' %}
+    <div class="detail-card">
+      <h3>{{ 'Customized Design' if lang=='en' else 'கஸ்டமைஸ் டிசைன்' }}</h3>
+      <p class="muted">{{ 'Upload your reference design and select areas. Our digitizer will review and share the price.' if lang=='en' else 'உங்கள் reference டிசைனை அப்லோட் செய்து பகுதிகளை தேர்வு செய்யவும். எங்கள் டிஜிடைசர் விலையை பகிர்வார்.' }}</p>
+      <a class="btn" href="{{ url_for('public.custom_design', lang=lang) }}">{{ 'Go to Custom Design' if lang=='en' else 'கஸ்டம் டிசைன் செல்ல' }}</a>
+    </div>
+  {% elif tab == 'new' %}
+    {% if not new_arrivals %}
+      <div class="empty">{{ 'No new arrivals yet.' if lang=='en' else 'புதிய டிசைன்கள் இல்லை.' }}</div>
+    {% else %}
+      <div class="grid grid-designs">
+        {% for d in new_arrivals %}
+          <a class="design-card" href="{{ url_for('public.design_detail', design_id=d.id, lang=lang) }}">
+            <img class="design-thumb" src="{{ url_for('public.uploads', filename=d.image_filename) }}" alt="{{ d.title_en }}" loading="lazy" />
+            <div class="design-meta">
+              <div class="card-title">{{ d.title_en if lang=='en' else d.title_ta }}</div>
+              {% if d.is_new_arrival %}
+                <div class="muted small">{{ 'New Arrival' if lang=='en' else 'புதியது' }}</div>
+              {% endif %}
+              <div class="muted">{{ 'Tap to select areas & see price' if lang=='en' else 'பகுதி தேர்வு செய்து விலை பார்க்க' }}</div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% else %}
+    {% if subcategories %}
+      <div class="tabs" style="margin-bottom:16px">
+        <a class="tab {{ 'active' if active_subcat=='all' else '' }}" href="{{ url_for('public.service_detail', slug='embroidery', lang=lang, tab='our', subcat='all') }}">{{ 'All' if lang=='en' else 'அனைத்தும்' }}</a>
+        {% for sc in subcategories %}
+          <a class="tab {{ 'active' if active_subcat==sc else '' }}" href="{{ url_for('public.service_detail', slug='embroidery', lang=lang, tab='our', subcat=sc) }}">{{ sc.replace('_',' ').title() }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if not designs %}
+      <div class="empty">{{ 'No designs uploaded yet.' if lang=='en' else 'டிசைன்கள் இல்லை.' }}</div>
+    {% else %}
+      <div class="grid grid-designs">
+        {% for d in designs %}
+          <a class="design-card" href="{{ url_for('public.design_detail', design_id=d.id, lang=lang) }}">
+            <img class="design-thumb" src="{{ url_for('public.uploads', filename=d.image_filename) }}" alt="{{ d.title_en }}" loading="lazy" />
+            <div class="design-meta">
+              <div class="card-title">{{ d.title_en if lang=='en' else d.title_ta }}</div>
+              <div class="muted">{{ 'Tap to select areas & see price' if lang=='en' else 'பகுதி தேர்வு செய்து விலை பார்க்க' }}</div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endif %}
+{% endblock %}
+

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Services' if lang=='en' else 'சேவைகள்' }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'Services' if lang=='en' else 'சேவைகள்' }}</h1>
+    <p class="muted">{{ 'Select a service to see designs and pricing.' if lang=='en' else 'ஒரு சேவையை தேர்வு செய்து டிசைன்கள் மற்றும் விலையை பார்க்கலாம்.' }}</p>
+  </div>
+
+  <div class="grid">
+    {% for s in services %}
+      <a class="card" href="{{ url_for('public.service_detail', slug=s.slug, lang=lang) }}">
+        <div class="card-title">{{ s.name_en if lang=='en' else s.name_ta }}</div>
+        <div class="muted">{{ 'View designs' if lang=='en' else 'டிசைன்கள் பார்க்க' }}</div>
+      </a>
+    {% endfor %}
+  </div>
+{% endblock %}
+

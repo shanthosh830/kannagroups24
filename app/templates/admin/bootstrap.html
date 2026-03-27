@@ -1,0 +1,22 @@
+{% extends "admin/layout.html" %}
+{% block title %}Bootstrap Owner{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Create Owner Account</h1>
+    <p class="muted">This runs only once (first setup).</p>
+  </div>
+
+  <form class="form" method="post" action="{{ url_for('admin.bootstrap_post') }}">
+    <label>
+      Email
+      <input name="email" type="email" placeholder="owner@email.com" required />
+    </label>
+    <label>
+      Password (min 8 chars)
+      <input name="password" type="password" required minlength="8" />
+    </label>
+    <button class="btn" type="submit">Create Owner</button>
+  </form>
+{% endblock %}
+

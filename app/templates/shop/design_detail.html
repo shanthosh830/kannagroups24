@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ (design.title_en if lang=='en' else design.title_ta) }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="breadcrumbs">
+    <a href="{{ url_for('public.services', lang=lang) }}">{{ 'Services' if lang=='en' else 'சேவைகள்' }}</a>
+    <span>/</span>
+    <a href="{{ url_for('public.service_detail', slug=service.slug, lang=lang) }}">{{ service.name_en if lang=='en' else service.name_ta }}</a>
+  </div>
+
+  <div class="product">
+    <div class="product-media">
+      <img
+        id="zoomTarget"
+        class="product-image"
+        src="{{ url_for('public.uploads', filename=design.image_filename) }}"
+        alt="{{ design.title_en }}"
+        data-zoomable="true"
+      />
+      <div class="muted small">
+        {% if lang == 'en' %}
+          Click image to zoom. Use mouse wheel or +/- buttons.
+        {% else %}
+          படத்தை அழுத்தி zoom செய்யவும். mouse wheel அல்லது +/- பொத்தான்கள் பயன்படுத்தவும்.
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="product-info">
+      <h1>{{ design.title_en if lang=='en' else design.title_ta }}</h1>
+
+      <div class="price">
+        <span id="priceBox" class="muted">{{ 'Select areas to see price' if lang=='en' else 'பகுதிகளை தேர்வு செய்து விலையை பார்க்கவும்' }}</span>
+      </div>
+
+      <div class="product-meta-row">
+        <span class="tag">{{ 'Zoomable image' if lang=='en' else 'Zoom படம்' }}</span>
+        <span class="tag">{{ 'Price auto-calculated' if lang=='en' else 'விலை தானாக கணக்கு' }}</span>
+      </div>
+
+      <form method="post" action="{{ url_for('public.cart_add', lang=lang) }}" class="add-to-cart-form" id="areaForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="design_id" value="{{ design.id }}" />
+        <input type="hidden" name="qty" value="1" />
+
+        <div class="detail-card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px;font-size:1rem">{{ 'Select areas' if lang=='en' else 'பகுதிகளை தேர்வு செய்யவும்' }}</h3>
+          <div class="area-checks">
+            {% if options and options.enable_fn %}<label class="area-check"><input type="checkbox" name="areas" value="fn"> {{ 'Front Neck' if lang=='en' else 'முன் கழுத்து' }}</label>{% endif %}
+            {% if options and options.enable_bn %}<label class="area-check"><input type="checkbox" name="areas" value="bn"> {{ 'Back Neck' if lang=='en' else 'பின் கழுத்து' }}</label>{% endif %}
+            {% if options and options.enable_sl %}<label class="area-check"><input type="checkbox" name="areas" value="sl"> {{ 'Sleeve' if lang=='en' else 'சட்டை' }}</label>{% endif %}
+            {% if options and options.enable_bn_butta %}<label class="area-check"><input type="checkbox" name="areas" value="bn_butta"> {{ 'Back Neck with Butta' if lang=='en' else 'பின் கழுத்து + புத்தா' }}</label>{% endif %}
+            {% if options and options.enable_sl_butta %}<label class="area-check"><input type="checkbox" name="areas" value="sl_butta"> {{ 'Sleeve with Butta' if lang=='en' else 'சட்டை + புத்தா' }}</label>{% endif %}
+          </div>
+          <p class="muted small" style="margin-top:8px">{{ 'Stitches are hidden. Price is calculated automatically.' if lang=='en' else 'ஸ்டிட்சஸ் காண்பிக்கப்படாது. விலை தானாக கணக்கிடப்படும்.' }}</p>
+          
+          <h3 style="margin:16px 0 8px;font-size:1rem">{{ 'Additional Services' if lang=='en' else 'கூடுதல் சேவைகள்' }}</h3>
+          <div class="area-checks">
+            <label class="area-check"><input type="checkbox" name="stitching" value="yes"> {{ 'Include Stitching Service' if lang=='en' else 'தையல் சேவையைச் சேர்க்கவும்' }}</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn atcbtn" id="addBtn" disabled>{{ 'Add to Cart' if lang=='en' else 'கார்ட்டில் சேர்' }}</button>
+      </form>
+
+      {% if whatsapp %}
+        <a
+          class="btn btn-whatsapp"
+          href="https://wa.me/{{ whatsapp | replace('+','') }}?text={{ ('Hi Kanna Groups, I want this design: ' ~ design.title_en ~ ' (ID ' ~ design.id ~ ')') | urlencode }}"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {{ 'Enquire / Order on WhatsApp' if lang=='en' else 'WhatsApp-ல் ஆர்டர் / கேள்வி' }}
+        </a>
+      {% endif %}
+
+      <div class="note">
+        {% if lang == 'en' %}
+          For custom changes, please message us on WhatsApp with your reference image.
+        {% else %}
+          கஸ்டமைஸ் மாற்றங்களுக்கு, உங்கள் reference படத்துடன் WhatsApp-ல் தொடர்பு கொள்ளவும்.
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const form = document.getElementById('areaForm');
+      const priceBox = document.getElementById('priceBox');
+      const addBtn = document.getElementById('addBtn');
+      if (!form || !priceBox || !addBtn) return;
+      const update = async () => {
+        const areas = Array.from(form.querySelectorAll('input[name="areas"]:checked')).map(x => x.value);
+        addBtn.disabled = areas.length === 0;
+        if (areas.length === 0) return;
+        const qs = areas.map(a => 'areas=' + encodeURIComponent(a)).join('&');
+        const stitching = form.querySelector('input[name="stitching"]');
+        const hasStitching = stitching && stitching.checked;
+        const stitchingQs = hasStitching ? '&stitching=yes' : '';
+        
+        try {
+          const res = await fetch('{{ url_for("public.design_quote", design_id=design.id, lang=lang) }}' + '&' + qs + stitchingQs);
+          const data = await res.json();
+          const p = data.price_inr || 0;
+          if (p > 0) {
+            priceBox.textContent = '₹' + p;
+            addBtn.disabled = false;
+          } else {
+            priceBox.textContent = '{{ "Price not set yet" if lang=="en" else "விலை இன்னும் அமைக்கவில்லை" }}';
+            addBtn.disabled = true;
+          }
+        } catch (e) {
+          console.error(e);
+          addBtn.disabled = true;
+        }
+      };
+      form.addEventListener('change', update);
+    })();
+  </script>
+
+  <!-- Zoom Modal -->
+  <div id="zoomModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-backdrop" data-zoom-close="true"></div>
+    <div class="modal-card">
+      <div class="modal-toolbar">
+        <button class="btn btn-outline" type="button" data-zoom-out="true">-</button>
+        <button class="btn btn-outline" type="button" data-zoom-in="true">+</button>
+        <button class="btn" type="button" data-zoom-close="true">{{ 'Close' if lang=='en' else 'மூடு' }}</button>
+      </div>
+      <div class="modal-body">
+        <img id="zoomImg" class="zoom-img" alt="Zoom view" />
+      </div>
+    </div>
+  </div>
+{% endblock %}
+

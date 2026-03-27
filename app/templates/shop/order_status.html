@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Order Status' if lang=='en' else 'ஆர்டர் நிலை' }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'Order Status' if lang=='en' else 'ஆர்டர் நிலை' }}</h1>
+  </div>
+
+  <div class="order-status-card">
+    <div class="order-id">Order #{{ order.id }} — {{ order.created_at.strftime('%d %b %Y %H:%M') }}</div>
+    <div class="order-total">₹{{ order.total_inr }}</div>
+
+    {% if order.status == 'pending_payment' %}
+      <p class="status-msg status-pending">{{ 'Please complete payment.' if lang=='en' else 'பணம் செலுத்தவும்.' }}</p>
+      <a href="{{ url_for('public.payment', token=order.token, lang=lang) }}" class="btn">{{ 'Go to Payment' if lang=='en' else 'பணம் செலுத்து' }}</a>
+    {% elif order.status == 'pending_approval' %}
+      <p class="status-msg status-wait">{{ 'Wait for admin approval. We will verify your payment and confirm shortly.' if lang=='en' else 'அட்மின் அனுமதிக்க காத்திருங்கள். உங்கள் பணத்தை சரிபார்த்து விரைவில் உறுதிப்படுத்துவோம்.' }}</p>
+      {% if order.transaction_id %}
+        <p class="muted small">{{ 'Your transaction ID:' if lang=='en' else 'உங்கள் பரிவர்த்தனை ID:' }} {{ order.transaction_id }}</p>
+      {% endif %}
+    {% elif order.status == 'paid' %}
+      <p class="status-msg status-success">{{ 'Payment confirmed. Your order is being processed.' if lang=='en' else 'பணம் உறுதிப்படுத்தப்பட்டது. உங்கள் ஆர்டர் செயலாக்கப்படுகிறது.' }}</p>
+    {% elif order.status == 'processing' %}
+      <p class="status-msg status-success">{{ 'Order is being processed.' if lang=='en' else 'ஆர்டர் செயலாக்கப்படுகிறது.' }}</p>
+    {% elif order.status == 'completed' %}
+      <p class="status-msg status-success">{{ 'Order completed. Thank you!' if lang=='en' else 'ஆர்டர் முடிந்தது. நன்றி!' }}</p>
+    {% elif order.status == 'cancelled' %}
+      <p class="status-msg status-cancel">{{ 'Order was cancelled.' if lang=='en' else 'ஆர்டர் ரத்து செய்யப்பட்டது.' }}</p>
+    {% endif %}
+
+    <div class="order-items">
+      <strong>{{ 'Items:' if lang=='en' else 'பொருட்கள்:' }}</strong>
+      <ul>
+        {% for oi in order.items %}
+          <li>{{ oi.title }} × {{ oi.quantity }} — ₹{{ oi.price_inr * oi.quantity }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <p class="muted small">{{ 'Save this link to check status again:' if lang=='en' else 'நிலையை மீண்டும் பார்க்க இந்த இணைப்பை சேமிக்கவும்:' }} <a href="{{ url_for('public.order_status', token=order.token, lang=lang) }}">{{ request.url }}</a></p>
+  </div>
+{% endblock %}

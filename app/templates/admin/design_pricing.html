@@ -1,0 +1,68 @@
+{% extends "admin/layout.html" %}
+{% block title %}Design Pricing - {{ design.title_en }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Pricing & Stitches</h1>
+    <p class="muted">Design: <strong>{{ design.title_en }}</strong> (customers will not see stitches)</p>
+  </div>
+
+  <div class="detail-card">
+    <img src="{{ url_for('public.uploads', filename=design.image_filename) }}" alt="Design" style="max-width:240px;border-radius:12px;border:1px solid rgba(255,255,255,.12)" />
+  </div>
+
+  <form class="form" method="post" action="{{ url_for('admin.design_edit_pricing_post', design_id=design.id) }}">
+    {{ form.hidden_tag() }}
+
+    <div class="detail-card">
+      <h3>New Arrivals</h3>
+      <label>{{ form.is_new_arrival.label }} {{ form.is_new_arrival(class_="input") }}</label>
+      <p class="muted small">If enabled, this design appears in Embroidery → New Arrivals.</p>
+    </div>
+
+    <div class="detail-card">
+      <h3>Enable customer options</h3>
+      <label>{{ form.enable_fn.label }} {{ form.enable_fn(class_="input") }}</label>
+      <label>{{ form.enable_bn.label }} {{ form.enable_bn(class_="input") }}</label>
+      <label>{{ form.enable_sl.label }} {{ form.enable_sl(class_="input") }}</label>
+      <label>{{ form.enable_bn_butta.label }} {{ form.enable_bn_butta(class_="input") }}</label>
+      <label>{{ form.enable_sl_butta.label }} {{ form.enable_sl_butta(class_="input") }}</label>
+    </div>
+
+    <div class="detail-card" style="border-left: 3px solid var(--accent1);">
+      <h3>💰 Per-area pricing (₹)</h3>
+      <p class="muted small" style="margin-bottom:12px">Set individual prices for each area. These add up based on what the customer selects.<br>
+      <strong>Example:</strong> FN=₹200, BN=₹150, SL=₹150 → customer selects all 3 → total = ₹500</p>
+      <label>{{ form.price_fn.label }} {{ form.price_fn(class_="input", placeholder="e.g. 200") }}</label>
+      <label>{{ form.price_bn.label }} {{ form.price_bn(class_="input", placeholder="e.g. 150") }}</label>
+      <label>{{ form.price_sl.label }} {{ form.price_sl(class_="input", placeholder="e.g. 150") }}</label>
+      <label>{{ form.price_bn_butta.label }} {{ form.price_bn_butta(class_="input", placeholder="e.g. 100") }}</label>
+      <label>{{ form.price_sl_butta.label }} {{ form.price_sl_butta(class_="input", placeholder="e.g. 100") }}</label>
+    </div>
+
+    <div class="detail-card">
+      <h3>Enter stitches per option (advanced)</h3>
+      <p class="muted small" style="margin-bottom:8px">Only used if per-area prices above are empty. Price is auto-calculated from stitch count.</p>
+      <label>{{ form.stitches_fn.label }} {{ form.stitches_fn(class_="input") }}</label>
+      <label>{{ form.stitches_bn.label }} {{ form.stitches_bn(class_="input") }}</label>
+      <label>{{ form.stitches_sl_single.label }} {{ form.stitches_sl_single(class_="input") }}</label>
+      <label>{{ form.stitches_bn_butta.label }} {{ form.stitches_bn_butta(class_="input") }}</label>
+      <label>{{ form.stitches_sl_butta_single.label }} {{ form.stitches_sl_butta_single(class_="input") }}</label>
+    </div>
+
+    <div class="detail-card">
+      <h3>Manual price override (optional)</h3>
+      <label>{{ form.manual_price_inr.label }} {{ form.manual_price_inr(class_="input", placeholder="e.g. 500") }}</label>
+      <p class="muted small">⚠️ If set, this FLAT price will be used for ALL selections, ignoring per-area and stitch prices above.</p>
+    </div>
+
+    <div class="detail-card">
+      <h3>Design charge (optional)</h3>
+      <label>{{ form.design_charge_inr.label }} {{ form.design_charge_inr(class_="input", placeholder="e.g. 150") }}</label>
+      <p class="muted small">If set, it will be added (first order only by default).</p>
+    </div>
+
+    <button class="btn" type="submit">Save</button>
+    <a class="btn btn-outline" href="{{ url_for('public.design_detail', design_id=design.id) }}" target="_blank" rel="noreferrer">View public</a>
+  </form>
+{% endblock %}

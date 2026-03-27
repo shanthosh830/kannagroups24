@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Shop' if lang=='en' else 'ஷாப்' }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'Shop' if lang=='en' else 'ஷாப்' }}</h1>
+    <p class="muted">{{ 'Browse designs by category and price. Add to cart and checkout on the website.' if lang=='en' else 'வகை மற்றும் விலை படி டிசைன்களை பாருங்கள். கார்ட்டில் சேர்த்து வலைத்தளத்தில் செக்அவுட் செய்யுங்கள்.' }}</p>
+  </div>
+
+  <div class="filter-bar">
+    <span class="filter-label">{{ 'Category:' if lang=='en' else 'வகை:' }}</span>
+    <a class="pft {{ 'active' if cat=='all' else '' }}" href="{{ url_for('public.shop', lang=lang, pf=price_filter, sort=sort) }}">{{ 'All' if lang=='en' else 'அனைத்தும்' }}</a>
+    {% for s in services %}
+      <a class="pft {{ 'active' if cat==s.slug else '' }}" href="{{ url_for('public.shop', lang=lang, cat=s.slug, pf=price_filter, sort=sort) }}">{{ s.name_en if lang=='en' else s.name_ta }}</a>
+    {% endfor %}
+    <span class="filter-label" style="margin-left:1rem">{{ 'Price:' if lang=='en' else 'விலை:' }}</span>
+    <a class="pft {{ 'active' if price_filter=='all' else '' }}" href="{{ url_for('public.shop', lang=lang, cat=cat, sort=sort) }}">All</a>
+    <a class="pft {{ 'active' if price_filter=='u500' else '' }}" href="{{ url_for('public.shop', lang=lang, cat=cat, pf='u500', sort=sort) }}">&lt; ₹500</a>
+    <a class="pft {{ 'active' if price_filter=='u1000' else '' }}" href="{{ url_for('public.shop', lang=lang, cat=cat, pf='u1000', sort=sort) }}">&lt; ₹1000</a>
+    <a class="pft {{ 'active' if price_filter=='u2000' else '' }}" href="{{ url_for('public.shop', lang=lang, cat=cat, pf='u2000', sort=sort) }}">&lt; ₹2000</a>
+    <a class="pft {{ 'active' if price_filter=='u5000' else '' }}" href="{{ url_for('public.shop', lang=lang, cat=cat, pf='u5000', sort=sort) }}">&lt; ₹5000</a>
+    <a class="pft {{ 'active' if price_filter=='5kp' else '' }}" href="{{ url_for('public.shop', lang=lang, cat=cat, pf='5kp', sort=sort) }}">₹5000+</a>
+    <span class="filter-label" style="margin-left:1rem">{{ 'Sort:' if lang=='en' else 'வரிசை:' }}</span>
+    <select class="sort-sel" onchange="window.location.href=this.value">
+      <option value="{{ url_for('public.shop', lang=lang, cat=cat, pf=price_filter, sort='default') }}" {{ 'selected' if sort=='default' else '' }}>{{ 'Default' if lang=='en' else 'இயல்பு' }}</option>
+      <option value="{{ url_for('public.shop', lang=lang, cat=cat, pf=price_filter, sort='asc') }}" {{ 'selected' if sort=='asc' else '' }}>{{ 'Price: Low → High' if lang=='en' else 'விலை: குறைந்தது → அதிகம்' }}</option>
+      <option value="{{ url_for('public.shop', lang=lang, cat=cat, pf=price_filter, sort='desc') }}" {{ 'selected' if sort=='desc' else '' }}>{{ 'Price: High → Low' if lang=='en' else 'விலை: அதிகம் → குறைந்தது' }}</option>
+      <option value="{{ url_for('public.shop', lang=lang, cat=cat, pf=price_filter, sort='name') }}" {{ 'selected' if sort=='name' else '' }}>{{ 'Name A–Z' if lang=='en' else 'பெயர்' }}</option>
+    </select>
+  </div>
+
+  <div class="result-count">{{ designs|length }} {{ 'designs' if lang=='en' else 'டிசைன்கள்' }}</div>
+
+  {% if not designs %}
+    <div class="empty">{{ 'No designs match. Try another filter.' if lang=='en' else 'பொருந்தும் டிசைன்கள் இல்லை.' }}</div>
+  {% else %}
+    <div class="pgrid">
+      {% for d in designs %}
+        <div class="pcard">
+          <a href="{{ url_for('public.design_detail', design_id=d.id, lang=lang) }}" class="pimg-link">
+            <div class="pimg" style="background-image:url({{ url_for('public.uploads', filename=d.image_filename) }});background-size:cover;background-position:center"></div>
+          </a>
+          <div class="pinfo">
+            <div class="pcat">{{ d.service.name_en if lang=='en' else d.service.name_ta }}</div>
+            <h3 class="pname"><a href="{{ url_for('public.design_detail', design_id=d.id, lang=lang) }}">{{ d.title_en if lang=='en' else d.title_ta }}</a></h3>
+            <div class="pfooter">
+              <span class="pprice">{% if d.min_price_inr %}{{ 'From' if lang=='en' else 'தொடக்கம்' }} ₹{{ d.min_price_inr }}{% else %}{{ 'Enquiry' if lang=='en' else 'கேள்வி' }}{% endif %}</span>
+              {% if d.min_price_inr %}
+                <form method="post" action="{{ url_for('public.cart_add', lang=lang) }}" style="display:inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <input type="hidden" name="design_id" value="{{ d.id }}" />
+                  <input type="hidden" name="qty" value="1" />
+                  <button type="submit" class="atcbtn">{{ 'Select & Add' if lang=='en' else 'தேர்வு செய்து சேர்' }}</button>
+                </form>
+              {% else %}
+                <a class="btn btn-outline" href="https://wa.me/{{ whatsapp | replace('+','') }}?text={{ ('Enquiry: ' ~ d.title_en) | urlencode }}" target="_blank" rel="noreferrer">{{ 'Enquire' if lang=='en' else 'கேள்வி' }}</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}

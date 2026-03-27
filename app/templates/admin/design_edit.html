@@ -1,0 +1,52 @@
+{% extends "admin/layout.html" %}
+{% block title %}Edit Design Info{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Edit Design {{ design.title_en }}</h1>
+  <p class="muted">Update the title, subcategory or upload a new image.</p>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="card" style="max-width: 600px;">
+  {{ form.csrf_token }}
+  
+  <div class="field">
+    {{ form.subcategory.label }}
+    {{ form.subcategory }}
+    {% if form.subcategory.errors %}
+      <div class="form-error">{{ form.subcategory.errors[0] }}</div>
+    {% endif %}
+    <span class="muted small">Leave blank unless you are using chudi/blouse tabs</span>
+  </div>
+
+  <div class="field">
+    {{ form.title_en.label }}
+    {{ form.title_en }}
+    {% if form.title_en.errors %}
+      <div class="form-error">{{ form.title_en.errors[0] }}</div>
+    {% endif %}
+  </div>
+
+  <div class="field">
+    {{ form.title_ta.label }}
+    {{ form.title_ta }}
+    {% if form.title_ta.errors %}
+      <div class="form-error">{{ form.title_ta.errors[0] }}</div>
+    {% endif %}
+  </div>
+
+  <div class="field" style="margin-top:20px;">
+    {{ form.image.label }} current: {{ design.image_filename }}
+    <div style="margin-bottom:8px;">
+      <img src="{{ url_for('public.uploads', filename=design.image_filename) }}" style="width: 100px; border-radius: 4px;">
+    </div>
+    {{ form.image }}
+    <div class="muted small">Leave empty to keep the current image</div>
+  </div>
+
+  <div style="margin-top: 24px;">
+    <button type="submit" class="btn">Save Changes</button>
+    <a href="{{ url_for('admin.designs_list', slug=service.slug) }}" class="btn btn-outline">Cancel</a>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "admin/layout.html" %}
+{% block title %}Reviews{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Reviews</h1>
+  </div>
+
+  <div class="reviews-admin-list">
+    {% for r in reviews %}
+      <div class="rev-card">
+        <div class="rev-head">
+          <div>
+            <strong>{{ r.customer_name }}</strong> {% if r.order_code %}({{ r.order_code }}){% endif %}
+            <div class="rev-dt">{{ r.created_at.strftime('%d %b %Y') }} — <span class="status-badge status-{{ r.status }}">{{ r.status }}</span></div>
+          </div>
+          <div class="stars">{{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}</div>
+        </div>
+        <div class="rev-txt">{{ r.text }}</div>
+        {% if r.reply %}
+          <div class="rev-reply">Reply: {{ r.reply }}</div>
+        {% endif %}
+        <div class="rev-actions">
+          {% if r.status == 'pending' %}
+            <form method="post" action="{{ url_for('admin.review_approve', review_id=r.id) }}" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}" /><button type="submit" class="btn small">Approve</button></form>
+            <form method="post" action="{{ url_for('admin.review_reject', review_id=r.id) }}" style="display:inline"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}" /><button type="submit" class="btn btn-outline small">Reject</button></form>
+          {% endif %}
+          <form method="post" action="{{ url_for('admin.review_reply', review_id=r.id) }}" class="form-inline" style="display:inline;margin-left:8px">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="text" name="reply" placeholder="Reply (owner)" value="{{ r.reply or '' }}" size="30" />
+            <button type="submit" class="btn small">Save reply</button>
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <p class="muted">No reviews.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

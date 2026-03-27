@@ -1,0 +1,40 @@
+{% extends "admin/layout.html" %}
+{% block title %}Orders{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Orders</h1>
+    <p class="muted">Filter: <a href="{{ url_for('admin.orders_list') }}">All</a> | <a href="{{ url_for('admin.orders_list', status='pending_payment') }}">Pending Payment</a> | <a href="{{ url_for('admin.orders_list', status='pending_approval') }}">Pending Approval</a> | <a href="{{ url_for('admin.orders_list', status='paid') }}">Paid</a> | <a href="{{ url_for('admin.orders_list', status='completed') }}">Completed</a></p>
+  </div>
+
+  <div class="table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+          <tr>
+            <td>{{ o.id }}</td>
+            <td>{{ o.customer_name }}</td>
+            <td>{{ o.customer_phone }}</td>
+            <td>₹{{ o.total_inr }}</td>
+            <td><span class="status-badge status-{{ o.status }}">{{ o.status }}</span></td>
+            <td>{{ o.created_at.strftime('%d %b %Y %H:%M') }}</td>
+            <td><a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="btn btn-outline small">View</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="7">No orders.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

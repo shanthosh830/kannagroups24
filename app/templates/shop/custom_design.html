@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Custom Design' if lang=='en' else 'கஸ்டம் டிசைன்' }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'Custom Embroidery Design' if lang=='en' else 'கஸ்டம் எம்பிராய்டரி டிசைன்' }}</h1>
+    <p class="muted">{{ 'Upload your design image and describe what you need. Our digitizer will prepare it and share the price via WhatsApp.' if lang=='en' else 'உங்கள் டிசைன் படத்தை அப்லோட் செய்து விவரிக்கவும். எங்கள் டிஜிடைசர் தயாரித்து விலையை WhatsApp மூலம் பகிர்வார்.' }}</p>
+  </div>
+
+  <div class="custom-section">
+    <form class="custom-form" method="post" enctype="multipart/form-data" action="{{ url_for('public.custom_design_post', lang=lang) }}">
+      {{ form.hidden_tag() }}
+      <div class="fg">
+        <div class="ff">
+          <label>{{ form.customer_name.label }}</label>
+          {{ form.customer_name(class_="input") }}
+        </div>
+        <div class="ff">
+          <label>{{ form.customer_phone.label }}</label>
+          {{ form.customer_phone(class_="input") }}
+        </div>
+      </div>
+      <div class="ff full">
+        <label>{{ form.description.label }}</label>
+        {{ form.description(class_="input", rows=4, placeholder="Describe the design: e.g. peacock motif on front neck and sleeves for wedding blouse…") }}
+      </div>
+      <div class="ff full">
+        <label>{{ 'Design areas (select all that apply)' if lang=='en' else 'டிசைன் பகுதிகள்' }}</label>
+        <div class="area-checks">
+          <label class="area-check"><input type="checkbox" name="areas" value="fn"> {{ 'Front Neck' if lang=='en' else 'முன் கழுத்து' }}</label>
+          <label class="area-check"><input type="checkbox" name="areas" value="bn"> {{ 'Back Neck' if lang=='en' else 'பின் கழுத்து' }}</label>
+          <label class="area-check"><input type="checkbox" name="areas" value="sl"> {{ 'Sleeve' if lang=='en' else 'சட்டை' }}</label>
+        </div>
+      </div>
+      <div class="ff full">
+        <label>{{ 'Upload design image (optional)' if lang=='en' else 'டிசைன் படம் (விரும்பினால்)' }}</label>
+        {{ form.image(class_="input") }}
+      </div>
+      <div class="ff full">
+        <label>{{ form.payment_method.label }}</label>
+        {{ form.payment_method(class_="input") }}
+      </div>
+      <div class="ff full">
+        <label>{{ form.notes.label }}</label>
+        {{ form.notes(class_="input", placeholder="Thread color, style…") }}
+      </div>
+      <p class="muted small">{{ 'After submission we will review and contact you via WhatsApp with the price.' if lang=='en' else 'சமர்ப்பித்த பிறகு விலையுடன் WhatsApp மூலம் தொடர்பு கொள்வோம்.' }}</p>
+      <button type="submit" class="btn sbtn">{{ 'Submit Custom Order' if lang=='en' else 'கஸ்டம் ஆர்டர் சமர்ப்பி' }}</button>
+    </form>
+  </div>
+{% endblock %}

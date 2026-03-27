@@ -1,0 +1,27 @@
+{% extends "admin/layout.html" %}
+{% block title %}Create User{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Create User</h1>
+    <p class="muted">Create Digitizer login (Owner only).</p>
+  </div>
+
+  <form class="form" method="post" action="{{ url_for('admin.user_new_post') }}">
+    {{ form.hidden_tag() }}
+    <label>
+      {{ form.email.label }}
+      {{ form.email(class_="input") }}
+    </label>
+    <label>
+      {{ form.role.label }}
+      {{ form.role(class_="input") }}
+    </label>
+    <label>
+      {{ form.password.label }}
+      {{ form.password(class_="input") }}
+    </label>
+    <button class="btn" type="submit">Create</button>
+  </form>
+{% endblock %}
+

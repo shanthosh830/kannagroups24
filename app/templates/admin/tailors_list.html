@@ -1,0 +1,55 @@
+{% extends "admin/layout.html" %}
+{% block title %}Tailors{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Tailors</h1>
+    <p class="muted">Manage known tailors. Orders with these phone numbers automatically get tailor pricing (no customer markup).</p>
+  </div>
+
+  <div class="detail-card">
+    <h3>Add a Tailor</h3>
+    <form class="form" method="post" action="{{ url_for('admin.tailor_new') }}">
+      {{ form.hidden_tag() }}
+      <label>
+        {{ form.name.label }}
+        {{ form.name(class_="input") }}
+      </label>
+      <label>
+        {{ form.phone.label }}
+        {{ form.phone(class_="input", placeholder="e.g. 9876543210") }}
+      </label>
+      <button type="submit" class="btn">Add Tailor</button>
+    </form>
+  </div>
+
+  <table class="table" style="margin-top:24px">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Added On</th>
+        <th class="text-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tailors %}
+        <tr>
+          <td>#{{ t.id }}</td>
+          <td>{{ t.name }}</td>
+          <td>{{ t.phone }}</td>
+          <td>{{ t.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td class="text-right">
+            <form method="post" action="{{ url_for('admin.tailor_delete', tailor_id=t.id) }}" style="display:inline" onsubmit="return confirm('Remove tailor?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <button class="btn btn-outline" style="border-color:red; color:red">Remove</button>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-center muted">No tailors currently.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

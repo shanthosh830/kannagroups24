@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Cart' if lang=='en' else 'கார்ட்' }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'Your Cart' if lang=='en' else 'உங்கள் கார்ட்' }}</h1>
+  </div>
+
+  {% if not cart %}
+    <div class="empty">
+      {{ 'Cart is empty. Add designs from Shop.' if lang=='en' else 'கார்ட் காலியாக உள்ளது. ஷாப் இலிருந்து டிசைன்களை சேர்க்கவும்.' }}
+      <a href="{{ url_for('public.shop', lang=lang) }}" class="btn" style="margin-top:1rem">{{ 'Go to Shop' if lang=='en' else 'ஷாப் பார்க்க' }}</a>
+    </div>
+  {% else %}
+    <div class="cart-list">
+      {% for item in cart %}
+        <div class="cart-item">
+          <div class="ci-img" style="background-image:url({{ url_for('public.uploads', filename=item.image_filename) }});background-size:cover;background-position:center"></div>
+          <div class="ci-det">
+            <div class="ci-name">{{ item.title_en if lang=='en' else item.title_ta }}</div>
+            {% if item.areas %}
+              <div class="muted small">{{ 'Areas' if lang=='en' else 'பகுதிகள்' }}: {{ item.areas }}</div>
+            {% endif %}
+            <div class="ci-price">₹{{ item.price_inr }} × {{ item.qty }} = ₹{{ item.price_inr * item.qty }}</div>
+          </div>
+          <form method="post" action="{{ url_for('public.cart_remove', lang=lang) }}" style="display:inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="design_id" value="{{ item.design_id }}" />
+            <button type="submit" class="btn btn-outline rem-btn">{{ 'Remove' if lang=='en' else 'நீக்கு' }}</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="cart-total-row">
+      <span>{{ 'Total' if lang=='en' else 'மொத்தம்' }}</span>
+      <span>₹{{ total }}</span>
+    </div>
+    <a href="{{ url_for('public.checkout', lang=lang) }}" class="btn order-btn">{{ 'Proceed to Checkout' if lang=='en' else 'செக்அவுட் செய்' }}</a>
+  {% endif %}
+{% endblock %}

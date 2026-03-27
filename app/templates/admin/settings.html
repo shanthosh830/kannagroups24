@@ -1,0 +1,62 @@
+{% extends "admin/layout.html" %}
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Settings</h1>
+    <p class="muted">Business info + UPI QR used on checkout/payment pages (Option A uses QR).</p>
+  </div>
+
+  <form class="form" method="post" enctype="multipart/form-data" action="{{ url_for('admin.settings_post') }}">
+    {{ form.hidden_tag() }}
+    <label>
+      {{ form.business_name.label }}
+      {{ form.business_name(class_="input") }}
+    </label>
+    <label>
+      {{ form.whatsapp_number.label }}
+      {{ form.whatsapp_number(class_="input") }}
+    </label>
+    <label>
+      {{ form.email.label }}
+      {{ form.email(class_="input") }}
+    </label>
+    <label>
+      {{ form.location.label }}
+      {{ form.location(class_="input") }}
+    </label>
+    <label>
+      {{ form.upi_id.label }}
+      {{ form.upi_id(class_="input", placeholder="example@upi") }}
+    </label>
+    <label>
+      {{ form.upi_qr.label }}
+      {{ form.upi_qr(class_="input") }}
+      {% if upi_qr_filename %}
+        <div class="muted small">Current QR: <a href="{{ url_for('public.uploads', filename=upi_qr_filename) }}" target="_blank" rel="noreferrer">{{ upi_qr_filename }}</a></div>
+      {% endif %}
+    </label>
+
+    <div class="detail-card">
+      <h3>Stitch pricing settings</h3>
+      <label>{{ form.stitch_threshold.label }} {{ form.stitch_threshold(class_="input") }}</label>
+      <label>{{ form.rate_amount.label }} {{ form.rate_amount(class_="input") }}</label>
+      <label>{{ form.sleeve_multiplier.label }} {{ form.sleeve_multiplier(class_="input") }}</label>
+      <label>{{ form.stitching_rate.label }} {{ form.stitching_rate(class_="input") }}</label>
+      <label>{{ form.customer_markup_percent.label }} {{ form.customer_markup_percent(class_="input") }}</label>
+      <label>{{ form.referral_discount_inr.label }} {{ form.referral_discount_inr(class_="input") }}</label>
+      <p class="muted small">These settings apply to all designs, unless a design has a manual fixed price set.</p>
+    </div>
+
+    <div class="detail-card">
+      <h3>Tailor auto-detection</h3>
+      <label>{{ form.tailor_auto_order_threshold.label }} {{ form.tailor_auto_order_threshold(class_="input", placeholder="5") }}</label>
+      <label>{{ form.tailor_auto_days_window.label }} {{ form.tailor_auto_days_window(class_="input", placeholder="30") }}</label>
+      <label>{{ form.tailor_bulk_threshold.label }} {{ form.tailor_bulk_threshold(class_="input", placeholder="5") }}</label>
+      <p class="muted small">If a phone has ≥ min orders in the days window, or the cart has ≥ bulk items, they automatically get tailor pricing. Set to 0 to disable a check.</p>
+    </div>
+
+    <button class="btn" type="submit">Save</button>
+  </form>
+{% endblock %}
+

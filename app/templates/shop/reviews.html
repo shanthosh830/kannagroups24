@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Reviews' if lang=='en' else 'ரிவியூக்கள்' }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'Customer Reviews' if lang=='en' else 'வாடிக்கையாளர் மதிப்புரைகள்' }}</h1>
+    <p class="muted">{{ 'What our customers say about us' if lang=='en' else 'எங்கள் வாடிக்கையாளர்கள் என்ன சொல்கிறார்கள்' }}</p>
+  </div>
+
+  <div class="add-rev-form">
+    <h3>{{ 'Write a Review' if lang=='en' else 'மதிப்புரை எழுதுங்கள்' }}</h3>
+    <form method="post" action="{{ url_for('public.reviews_post', lang=lang) }}">
+      {{ form.hidden_tag() }}
+      <label>{{ form.customer_name.label }} {{ form.customer_name(class_="input") }}</label>
+      <label>{{ form.order_code.label }} {{ form.order_code(class_="input") }}</label>
+      <label>{{ form.rating.label }} {{ form.rating(class_="input", min=1, max=5, type="number") }}</label>
+      <label>{{ form.text.label }} {{ form.text(class_="input", rows=4) }}</label>
+      <button type="submit" class="btn sbtn">{{ 'Submit Review' if lang=='en' else 'மதிப்புரை சமர்ப்பி' }}</button>
+    </form>
+  </div>
+
+  <div class="reviews-list">
+    {% if reviews %}
+      {% for r in reviews %}
+        <div class="rev-card">
+          <div class="rev-head">
+            <div>
+              <div class="rev-nm">{{ r.customer_name }}</div>
+              <div class="rev-dt">{{ r.created_at.strftime('%d %b %Y') }}{% if r.order_code %} • {{ r.order_code }}{% endif %}</div>
+            </div>
+            <div class="stars">{{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}</div>
+          </div>
+          <div class="rev-txt">{{ r.text }}</div>
+          {% if r.reply %}
+            <div class="rev-reply">🏪 {{ r.reply }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">{{ 'No approved reviews yet. Be the first!' if lang=='en' else 'இன்னும் மதிப்புரைகள் இல்லை. முதல் நபராக இருங்கள்!' }}</p>
+    {% endif %}
+  </div>
+{% endblock %}

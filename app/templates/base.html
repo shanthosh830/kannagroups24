@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="{{ 'ta' if lang == 'ta' else 'en' }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}{{ business_name or "Kanna Groups" }}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <script defer src="{{ url_for('static', filename='js/zoom.js') }}"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar-inner">
+        <a class="brand" href="{{ url_for('public.home', lang=lang) }}">{{ business_name or "Kanna Groups" }}</a>
+        <nav class="nav">
+          <a href="{{ url_for('public.home', lang=lang) }}">{{ 'Home' if lang=='en' else 'முகப்பு' }}</a>
+          <a href="{{ url_for('public.about', lang=lang) }}">{{ 'About' if lang=='en' else 'எங்களைப் பற்றி' }}</a>
+          <a href="{{ url_for('public.cart_page', lang=lang) }}">{{ 'Cart' if lang=='en' else 'கார்ட்' }}{% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}</a>
+          <a href="{{ url_for('public.my_orders', lang=lang) }}">{{ 'My Orders' if lang=='en' else 'என் ஆர்டர்கள்' }}</a>
+          <a href="{{ url_for('public.reviews_page', lang=lang) }}">{{ 'Reviews' if lang=='en' else 'ரிவியூக்கள்' }}</a>
+        </nav>
+        <div class="lang">
+          <a class="{{ 'active' if lang=='en' else '' }}" href="{{ request.path }}?lang=en">EN</a>
+          <a class="{{ 'active' if lang=='ta' else '' }}" href="{{ request.path }}?lang=ta">TA</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-wrap">
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer" id="contact">
+      <div class="container footer-inner">
+        <div>
+          <div class="footer-title">{{ business_name or "Kanna Groups" }}</div>
+          <div class="muted">{{ location or '' }}</div>
+        </div>
+        {% if whatsapp %}
+          <a class="btn btn-whatsapp" href="https://wa.me/{{ whatsapp | replace('+','') }}" target="_blank" rel="noreferrer">
+            WhatsApp
+          </a>
+        {% endif %}
+      </div>
+    </footer>
+
+    {% if whatsapp %}
+      <div class="floating-wa">
+        <a class="btn btn-whatsapp" href="https://wa.me/{{ whatsapp | replace('+','') }}" target="_blank" rel="noreferrer">
+          {{ 'WhatsApp us' if lang=='en' else 'WhatsApp-ல் தொடர்பு' }}
+        </a>
+      </div>
+    {% endif %}
+  </body>
+</html>
+

@@ -1,0 +1,31 @@
+{% extends "admin/layout.html" %}
+{% block title %}Upload Design - {{ service.name_en }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Upload Design</h1>
+    <p class="muted">{{ service.name_en }} / {{ service.name_ta }}</p>
+  </div>
+
+  <form class="form" method="post" enctype="multipart/form-data" action="{{ url_for('admin.design_new_post', slug=service.slug) }}">
+    {{ form.hidden_tag() }}
+    <label>
+      {{ form.title_en.label }}
+      {{ form.title_en(class_="input", placeholder="Design title") }}
+    </label>
+    <label>
+      {{ form.title_ta.label }}
+      {{ form.title_ta(class_="input", placeholder="டிசைன் தலைப்பு") }}
+    </label>
+    <label>
+      {{ form.subcategory.label }}
+      {{ form.subcategory(class_="input") }}
+    </label>
+    <label>
+      {{ form.image.label }}
+      {{ form.image(class_="input") }}
+    </label>
+    <button class="btn" type="submit">Upload</button>
+  </form>
+{% endblock %}
+

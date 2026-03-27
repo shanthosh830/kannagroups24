@@ -1,0 +1,47 @@
+{% extends "admin/layout.html" %}
+{% block title %}Edit Custom Request #{{ req.id }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Edit Request #{{ req.id }}</h1>
+    <a href="{{ url_for('admin.custom_requests_list') }}" class="btn btn-outline">&larr; Back to List</a>
+  </div>
+
+  <div class="detail-card">
+    <p><strong>Customer:</strong> {{ req.customer_name }} ({{ req.customer_phone }})</p>
+    <p><strong>Date:</strong> {{ req.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+    <p><strong>Areas:</strong> {{ req.areas }}</p>
+    <p><strong>Description:</strong> {{ req.description }}</p>
+    {% if req.notes %}
+    <p><strong>Notes:</strong> {{ req.notes }}</p>
+    {% endif %}
+    {% if req.image_filename %}
+      <p>
+        <a href="{{ url_for('public.uploads', filename=req.image_filename) }}" target="_blank">View Reference Image</a>
+      </p>
+    {% endif %}
+  </div>
+
+  <form method="post" action="{{ url_for('admin.custom_request_edit_post', req_id=req.id) }}" class="form" style="margin-top:24px">
+    {{ form.hidden_tag() }}
+    
+    <label>
+      {{ form.status.label }}
+      {{ form.status(class_="input") }}
+    </label>
+
+    <label>
+      {{ form.design_amount_inr.label }}
+      {{ form.design_amount_inr(class_="input") }}
+      <div class="muted small">Total amount determined by the designer for this custom request.</div>
+    </label>
+
+    <label>
+      {{ form.advance_inr.label }}
+      {{ form.advance_inr(class_="input") }}
+      <div class="muted small">Advance amount paid by the customer for this custom order.</div>
+    </label>
+    
+    <button class="btn" type="submit">Update Request</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "admin/layout.html" %}
+{% block title %}New Expense{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Record Expense</h1>
+  </div>
+
+  <form class="form" method="post" action="{{ url_for('admin.expense_new_post') }}">
+    {{ form.hidden_tag() }}
+    <label>{{ form.date.label }} {{ form.date(class_="input", placeholder="YYYY-MM-DD") }}</label>
+    <label>{{ form.amount_inr.label }} {{ form.amount_inr(class_="input") }}</label>
+    <label>{{ form.category.label }} {{ form.category(class_="input") }}</label>
+    <label>{{ form.notes.label }} {{ form.notes(class_="input") }}</label>
+    <button class="btn" type="submit">Save</button>
+  </form>
+{% endblock %}

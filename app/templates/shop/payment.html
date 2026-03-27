@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Pay for Order' if lang=='en' else 'பணம் செலுத்து' }} - {{ business_name }}{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>{{ 'Complete Payment' if lang=='en' else 'பணம் செலுத்துங்கள்' }}</h1>
+    <p class="muted">{{ 'Order total: ₹' ~ order.total_inr ~ '. Pay via UPI below, then submit your transaction ID.' if lang=='en' else 'மொத்தம்: ₹' ~ order.total_inr ~ '. UPI மூலம் பணம் செலுத்தி, பின்னர் உங்கள் பரிவர்த்தனை ID ஐ சமர்ப்பிக்கவும்.' }}</p>
+  </div>
+
+  <div class="payment-box">
+    <div class="order-summary">
+      <strong>Order #{{ order.id }}</strong> — ₹{{ order.total_inr }}
+    </div>
+    {% if upi_id %}
+      <div class="upi-block">
+        <div class="upi-label">{{ 'Scan QR or pay to UPI ID:' if lang=='en' else 'QR ஸ்கேன் செய்யவும் அல்லது UPI ID க்கு பணம் செலுத்தவும்:' }}</div>
+        <div class="upi-id">{{ upi_id }}</div>
+      </div>
+    {% endif %}
+    {% if upi_qr_filename %}
+      <div class="upi-qr-wrap">
+        <img src="{{ url_for('public.uploads', filename=upi_qr_filename) }}" alt="UPI QR" class="upi-qr" />
+      </div>
+    {% endif %}
+
+    <form class="form" method="post" action="{{ url_for('public.payment_post', token=order.token, lang=lang) }}">
+      {{ form.hidden_tag() }}
+      <label>{{ 'Transaction ID' if lang=='en' else 'பரிவர்த்தனை ID' }} {{ form.transaction_id(class_="input", placeholder="e.g. 123456789012", required="required") }}</label>
+      <p class="muted small">{{ 'Please enter the 12-digit transaction ID from your bank app after making the UPI payment.' if lang=='en' else 'UPI மூலம் பணம் செலுத்திய பிறகு உங்கள் பேங்க் ஆப் இலிருந்து 12 இலக்க பரிவர்த்தனை ID ஐ உள்ளிடவும்.' }}</p>
+      <button type="submit" class="btn sbtn">{{ "I've Paid — Submit" if lang=='en' else 'பணம் செலுத்தினேன் — சமர்ப்பிக்கவும்' }}</button>
+    </form>
+  </div>
+  <p class="muted" style="margin-top:1rem">{{ 'After submitting you will see "Wait for admin approval" until we confirm your payment.' if lang=='en' else 'சமர்ப்பித்த பிறகு எங்கள் அனுமதி வரை "அட்மின் அனுமதிக்க காத்திருங்கள்" என்று காண்பீர்கள்.' }}</p>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "admin/layout.html" %}
+{% block title %}Stitching Prices{% endblock %}
+
+{% block content %}
+  <div class="page-header">
+    <h1>Stitching Prices</h1>
+    <p class="muted">Set the base pricing for different stitching options available to customers.</p>
+  </div>
+
+  <form class="form" method="post" action="{{ url_for('admin.stitching_prices_post') }}">
+    {{ form.hidden_tag() }}
+
+    <div class="detail-card">
+      <h3>Embroidery Blouse</h3>
+      <label>
+        {{ form.embroidery_with_lining.label }}
+        {{ form.embroidery_with_lining(class_="input", placeholder="e.g. 500") }}
+      </label>
+      <label>
+        {{ form.embroidery_without_lining.label }}
+        {{ form.embroidery_without_lining(class_="input", placeholder="e.g. 400") }}
+      </label>
+    </div>
+
+    <div class="detail-card">
+      <h3>Aariwork Blouse</h3>
+      <label>
+        {{ form.aari_with_lining.label }}
+        {{ form.aari_with_lining(class_="input", placeholder="e.g. 800") }}
+      </label>
+      <label>
+        {{ form.aari_without_lining.label }}
+        {{ form.aari_without_lining(class_="input", placeholder="e.g. 650") }}
+      </label>
+    </div>
+
+    <div class="detail-card">
+      <h3>Normal Blouse</h3>
+      <label>
+        {{ form.normal_with_lining.label }}
+        {{ form.normal_with_lining(class_="input", placeholder="e.g. 400") }}
+      </label>
+      <label>
+        {{ form.normal_without_lining.label }}
+        {{ form.normal_without_lining(class_="input", placeholder="e.g. 300") }}
+      </label>
+    </div>
+
+    <button class="btn" type="submit">Save Prices</button>
+  </form>
+{% endblock %}

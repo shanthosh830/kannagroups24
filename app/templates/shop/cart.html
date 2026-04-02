@@ -25,7 +25,11 @@
           </div>
           <form method="post" action="{{ url_for('public.cart_remove', lang=lang) }}" style="display:inline">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-            <input type="hidden" name="design_id" value="{{ item.design_id }}" />
+            {% if item.item_id %}
+              <input type="hidden" name="item_id" value="{{ item.item_id }}" />
+            {% else %}
+              <input type="hidden" name="design_id" value="{{ item.design_id }}" />
+            {% endif %}
             <button type="submit" class="btn btn-outline rem-btn">{{ 'Remove' if lang=='en' else 'நீக்கு' }}</button>
           </form>
         </div>

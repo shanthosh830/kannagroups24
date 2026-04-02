@@ -245,6 +245,7 @@ def cart_add():
             flash("Cart updated.", "success")
             return redirect(request.referrer or url_for("public.shop"))
     cart_list.append({
+        "item_id": secrets.token_hex(8),
         "design_id": design_id,
         "qty": qty,
         "title_en": design.title_en,
@@ -258,12 +259,59 @@ def cart_add():
     return redirect(request.referrer or url_for("public.shop"))
 
 
+@bp.post("/cart/add-custom")
+def cart_add_custom():
+    service_slug = request.form.get("service_slug")
+    if service_slug == "stitching":
+        stype = request.form.get("stitching_type")
+        lopt = request.form.get("lining_option")
+        key = f"stitching_{stype}_{lopt}"
+        price_str = get_setting(key, "")
+        try:
+            price_inr = int(price_str)
+        except ValueError:
+            price_inr = 0
+        if price_inr <= 0:
+            flash("Pricing not configured for this option. Please contact us.", "error")
+            return redirect(request.referrer or url_for("public.shop"))
+        
+        name_en = f"Stitching Service ({stype.title()} - {lopt.replace('_', ' ').title()})"
+        name_ta = f"தையல் சேவை ({stype} - {lopt})"
+        
+        cart_list = _get_cart()
+        # Ensure older items have item_id
+        for i in cart_list:
+            if "item_id" not in i:
+                i["item_id"] = secrets.token_hex(8)
+
+        cart_list.append({
+            "item_id": secrets.token_hex(8),
+            "design_id": None,
+            "qty": 1,
+            "title_en": name_en,
+            "title_ta": name_ta,
+            "price_inr": price_inr,
+            "image_filename": "",
+            "areas": "",
+        })
+        _set_cart(cart_list)
+        flash("Added to cart.", "success")
+        return redirect(url_for("public.cart_page"))
+    
+    return redirect(url_for("public.shop"))
+
+
 @bp.post("/cart/remove")
 def cart_remove():
+    item_id = request.form.get("item_id")
     design_id = request.form.get("design_id", type=int)
-    if design_id is None:
-        return redirect(url_for("public.cart_page"))
-    cart_list = [i for i in _get_cart() if i["design_id"] != design_id]
+    
+    cart_list = _get_cart()
+    if item_id:
+        cart_list = [i for i in cart_list if i.get("item_id") != item_id]
+    elif design_id is not None:
+        cart_list = [i for i in cart_list if i.get("design_id") != design_id]
+        
     _set_cart(cart_list)
     flash("Item removed.", "info")
     return redirect(url_for("public.cart_page"))

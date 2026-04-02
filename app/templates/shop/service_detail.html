@@ -4,6 +4,7 @@
 {% block content %}
   <div class="page-header">
     <h1>{{ service.name_en if lang=='en' else service.name_ta }}</h1>
+    {% if service.slug != 'stitching' %}
     <p class="muted">
       {% if lang == 'en' %}
         Tap a design card to open full details with zoom and price.
@@ -11,9 +12,39 @@
         டிசைன் கார்டை அழுத்தி zoom செய்யப்பட்ட படம் மற்றும் விலையை பார்க்கலாம்.
       {% endif %}
     </p>
+    {% endif %}
   </div>
 
-  {% if designs|length == 0 %}
+  {% if service.slug == 'stitching' %}
+    <div class="detail-card">
+      <h3>{{ 'Select Stitching Option' if lang=='en' else 'தையல் விருப்பத்தை தேர்வு செய்க' }}</h3>
+      <form class="form" method="post" action="{{ url_for('public.cart_add_custom', lang=lang) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="service_slug" value="stitching" />
+        
+        <label>
+          {{ 'Type of Blouse' if lang=='en' else 'விதம்' }}
+          <select name="stitching_type" class="input" required>
+            <option value="">-- Select --</option>
+            <option value="embroidery">Embroidery Blouse</option>
+            <option value="aari">Aariwork Blouse</option>
+            <option value="normal">Normal Blouse</option>
+          </select>
+        </label>
+        
+        <label>
+          {{ 'Lining Option' if lang=='en' else 'லைனிங்' }}
+          <select name="lining_option" class="input" required>
+            <option value="">-- Select --</option>
+            <option value="with_lining">With Lining</option>
+            <option value="without_lining">Without Lining</option>
+          </select>
+        </label>
+        
+        <button type="submit" class="btn atcbtn" style="margin-top:16px;">{{ 'Add to Cart' if lang=='en' else 'கார்ட்டில் சேர்' }}</button>
+      </form>
+    </div>
+  {% elif designs|length == 0 %}
     <div class="empty">
       {% if lang == 'en' %}
         No designs uploaded yet. Please check back soon.

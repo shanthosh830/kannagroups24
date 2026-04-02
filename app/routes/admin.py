@@ -30,6 +30,7 @@ from ..forms import (
     DesignForm,
     DesignPricingForm,
     SettingsForm,
+    StitchingPricesForm,
     UserCreateForm,
 )
 
@@ -247,6 +248,7 @@ def design_edit_pricing(design_id: int):
         stitches_bn_butta=ds.stitches_bn_butta,
         stitches_sl_butta_single=ds.stitches_sl_butta_single,
         design_charge_inr=design.design_charge_inr,
+        stitching_charge_inr=design.stitching_charge_inr,
     )
     return render_template(
         "admin/design_pricing.html",
@@ -287,6 +289,7 @@ def design_edit_pricing_post(design_id: int):
     ds.stitches_sl_butta_single = max(0, int(form.stitches_sl_butta_single.data or 0))
 
     design.design_charge_inr = form.design_charge_inr.data
+    design.stitching_charge_inr = form.stitching_charge_inr.data
     recompute_design_min_price(design)
     db.session.commit()
 
@@ -345,6 +348,48 @@ def settings_post():
     db.session.commit()
     flash("Settings saved.", "success")
     return redirect(url_for("admin.settings"))
+
+
+@bp.get("/stitching-prices")
+@login_required
+def stitching_prices():
+    form = StitchingPricesForm(
+        embroidery_with_lining=get_setting("stitching_embroidery_with_lining", ""),
+        embroidery_without_lining=get_setting("stitching_embroidery_without_lining", ""),
+        aari_with_lining=get_setting("stitching_aari_with_lining", ""),
+        aari_without_lining=get_setting("stitching_aari_without_lining", ""),
+        normal_with_lining=get_setting("stitching_normal_with_lining", ""),
+        normal_without_lining=get_setting("stitching_normal_without_lining", ""),
+    )
+    return render_template("admin/stitching_prices.html", form=form)
+
+
+@bp.post("/stitching-prices")
+@login_required
+def stitching_prices_post():
+    form = StitchingPricesForm()
+    if not form.validate_on_submit():
+        return render_template("admin/stitching_prices.html", form=form), 400
+
+    from ..models import Setting
+    settings_map = {
+        "stitching_embroidery_with_lining": str(form.embroidery_with_lining.data or ""),
+        "stitching_embroidery_without_lining": str(form.embroidery_without_lining.data or ""),
+        "stitching_aari_with_lining": str(form.aari_with_lining.data or ""),
+        "stitching_aari_without_lining": str(form.aari_without_lining.data or ""),
+        "stitching_normal_with_lining": str(form.normal_with_lining.data or ""),
+        "stitching_normal_without_lining": str(form.normal_without_lining.data or ""),
+    }
+    for key, value in settings_map.items():
+        s = Setting.query.filter_by(key=key).first()
+        if not s:
+            db.session.add(Setting(key=key, value=value))
+        else:
+            s.value = value
+
+    db.session.commit()
+    flash("Stitching prices saved.", "success")
+    return redirect(url_for("admin.stitching_prices"))
 
 
 @bp.get("/users/new")

@@ -37,6 +37,9 @@ class DesignPricingForm(FlaskForm):
     # Design charge
     design_charge_inr = IntegerField("Design/Digitizing charge (₹) (optional)", validators=[Optional()])
 
+    # Stitching charge
+    stitching_charge_inr = IntegerField("Stitching charge (₹) (optional)", validators=[Optional()])
+
 
 class SettingsForm(FlaskForm):
     business_name = StringField("Business name", validators=[DataRequired(), Length(max=200)])
@@ -45,6 +48,15 @@ class SettingsForm(FlaskForm):
     location = StringField("Location", validators=[Optional(), Length(max=200)])
     upi_id = StringField("UPI ID", validators=[Optional(), Length(max=64)])
     upi_qr = FileField("UPI QR image (optional)", validators=[FileAllowed(["jpg", "jpeg", "png", "webp"])])
+
+
+class StitchingPricesForm(FlaskForm):
+    embroidery_with_lining = IntegerField("Embroidery Blouse (With Lining)", validators=[Optional()])
+    embroidery_without_lining = IntegerField("Embroidery Blouse (Without Lining)", validators=[Optional()])
+    aari_with_lining = IntegerField("Aariwork Blouse (With Lining)", validators=[Optional()])
+    aari_without_lining = IntegerField("Aariwork Blouse (Without Lining)", validators=[Optional()])
+    normal_with_lining = IntegerField("Normal Blouse (With Lining)", validators=[Optional()])
+    normal_without_lining = IntegerField("Normal Blouse (Without Lining)", validators=[Optional()])
 
 
 class UserCreateForm(FlaskForm):

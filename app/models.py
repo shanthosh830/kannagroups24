@@ -105,6 +105,9 @@ class Design(db.Model):
     design_charge_first_order_only = db.Column(db.Boolean, nullable=False, default=True)
     design_charge_applied_once = db.Column(db.Boolean, nullable=False, default=False)
 
+    # Optional stitching charge
+    stitching_charge_inr = db.Column(db.Integer, nullable=True)
+
     # "New Arrivals" tab flag
     is_new_arrival = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -204,6 +207,9 @@ def calc_price_inr_for_selection(design: Design, selected: list[str]) -> int:
     if design.design_charge_inr and design.design_charge_inr > 0:
         if not design.design_charge_first_order_only or not design.design_charge_applied_once:
             base_price += int(design.design_charge_inr)
+
+    if "stitching" in selected and design.stitching_charge_inr and design.stitching_charge_inr > 0:
+        base_price += int(design.stitching_charge_inr)
 
     return max(0, base_price)
 
@@ -369,7 +375,6 @@ def ensure_default_services() -> None:
         ("malai", "Wedding Malai", "திருமண மாலை"),
         ("womens-clothing", "Online Women's Clothing", "ஆன்லைன் மகளிர் உடைகள்"),
         ("rental-jewels", "Bridal Rental Jewels", "மணமகள் வாடகை நகைகள்"),
-        ("bridal-makeup", "Bridal Makeup", "மணமகள் மேக்கப்"),
     ]
     changed = False
     for slug, en, ta in defaults:

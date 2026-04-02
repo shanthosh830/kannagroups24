@@ -44,6 +44,12 @@
       <p class="muted small">If set, it will be added (first order only by default).</p>
     </div>
 
+    <div class="detail-card">
+      <h3>Stitching charge (optional)</h3>
+      <label>{{ form.stitching_charge_inr.label }} {{ form.stitching_charge_inr(class_="input", placeholder="e.g. 500") }}</label>
+      <p class="muted small">If set, it will be added when the customer selects the stitching option.</p>
+    </div>
+
     <button class="btn" type="submit">Save</button>
     <a class="btn btn-outline" href="{{ url_for('public.design_detail', design_id=design.id) }}" target="_blank" rel="noreferrer">View public</a>
   </form>

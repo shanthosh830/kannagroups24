@@ -58,6 +58,7 @@
             {% if options and options.enable_sl %}<label class="area-check"><input type="checkbox" name="areas" value="sl"> {{ 'Sleeve' if lang=='en' else 'சட்டை' }}</label>{% endif %}
             {% if options and options.enable_bn_butta %}<label class="area-check"><input type="checkbox" name="areas" value="bn_butta"> {{ 'Back Neck with Butta' if lang=='en' else 'பின் கழுத்து + புத்தா' }}</label>{% endif %}
             {% if options and options.enable_sl_butta %}<label class="area-check"><input type="checkbox" name="areas" value="sl_butta"> {{ 'Sleeve with Butta' if lang=='en' else 'சட்டை + புத்தா' }}</label>{% endif %}
+            {% if options %}<label class="area-check"><input type="checkbox" name="areas" value="stitching"> {{ 'Need Stitching Service' if lang=='en' else 'தையல் சேவை தேவை' }}</label>{% endif %}
           </div>
           <p class="muted small" style="margin-top:8px">{{ 'Stitches are hidden. Price is calculated automatically.' if lang=='en' else 'ஸ்டிட்சஸ் காண்பிக்கப்படாது. விலை தானாக கணக்கிடப்படும்.' }}</p>
         </div>

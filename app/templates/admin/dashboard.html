@@ -14,6 +14,7 @@
         <div class="muted">{{ s.name_ta }}</div>
         <div class="card-actions">
           <a class="btn btn-outline" href="{{ url_for('public.service_detail', slug=s.slug) }}" target="_blank" rel="noreferrer">View public</a>
+          <a class="btn btn-outline" href="{{ url_for('admin.designs_list', slug=s.slug) }}">Manage designs</a>
           <a class="btn" href="{{ url_for('admin.design_new', slug=s.slug) }}">Upload design</a>
         </div>
       </div>

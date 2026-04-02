@@ -167,9 +167,63 @@ def design_new_post(slug: str):
     db.session.add(DesignStitches(design_id=d.id))
 
     db.session.commit()
-
-    flash("Design uploaded.", "success")
+    flash("Design uploaded successfully.", "success")
     return redirect(url_for("admin.design_edit_pricing", design_id=d.id))
+
+
+@bp.get("/services/<slug>/designs")
+@login_required
+def designs_list(slug: str):
+    service = Service.query.filter_by(slug=slug).first_or_404()
+    designs = Design.query.filter_by(service_id=service.id).order_by(Design.id.desc()).all()
+    return render_template("admin/designs_list.html", service=service, designs=designs)
+
+
+@bp.get("/designs/<int:design_id>/edit")
+@login_required
+def design_details_edit(design_id: int):
+    d = Design.query.get_or_404(design_id)
+    form = DesignForm(obj=d)
+    return render_template("admin/design_edit.html", design=d, form=form, service=d.service)
+
+
+@bp.post("/designs/<int:design_id>/edit")
+@login_required
+def design_details_edit_post(design_id: int):
+    d = Design.query.get_or_404(design_id)
+    title_en = request.form.get("title_en", "").strip()
+    title_ta = request.form.get("title_ta", "").strip()
+    
+    if not title_en or not title_ta:
+        flash("Titles cannot be empty.", "error")
+        return redirect(url_for("admin.design_details_edit", design_id=d.id))
+        
+    d.title_en = title_en
+    d.title_ta = title_ta
+    
+    file = request.files.get("image")
+    if file and file.filename != "":
+        result = cloudinary.uploader.upload(file, folder="kannagroups/designs")
+        # Ensure we set the primary thumbnail
+        d.image_filename = result["secure_url"]
+        # And insert it as a design image linked to the design
+        img = DesignImage(design_id=d.id, image_url=result["secure_url"])
+        db.session.add(img)
+
+    db.session.commit()
+    flash("Design updated.", "success")
+    return redirect(url_for("admin.designs_list", slug=d.service.slug))
+
+
+@bp.post("/designs/<int:design_id>/delete")
+@login_required
+def design_delete(design_id: int):
+    d = Design.query.get_or_404(design_id)
+    slug = d.service.slug
+    db.session.delete(d)
+    db.session.commit()
+    flash("Design deleted.", "success")
+    return redirect(url_for("admin.designs_list", slug=slug))
 
 
 @bp.get("/designs/<int:design_id>/pricing")

@@ -6,7 +6,7 @@ from pathlib import Path
 import cloudinary
 from flask import Flask
 
-from .extensions import db, login_manager
+from .extensions import csrf, db, login_manager
 
 # ── Cloudinary configuration ──────────────────────────────────────────
 cloudinary.config(
@@ -57,6 +57,7 @@ def create_app() -> Flask:
     Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
 
     db.init_app(app)
+    csrf.init_app(app)
     login_manager.init_app(app)
 
     # ── Blueprints ────────────────────────────────────────────────

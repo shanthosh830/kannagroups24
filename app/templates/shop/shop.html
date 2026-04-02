@@ -38,7 +38,7 @@
       {% for d in designs %}
         <div class="pcard">
           <a href="{{ url_for('public.design_detail', design_id=d.id, lang=lang) }}" class="pimg-link">
-            <div class="pimg" style="background-image:url({{ url_for('public.uploads', filename=d.image_filename) }});background-size:cover;background-position:center"></div>
+            <div class="pimg" style="background-image:url({{ img_url(d.image_filename) }});background-size:cover;background-position:center"></div>
           </a>
           <div class="pinfo">
             <div class="pcat">{{ d.service.name_en if lang=='en' else d.service.name_ta }}</div>

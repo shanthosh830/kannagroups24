@@ -18,12 +18,9 @@
       {{ form.title_ta(class_="input", placeholder="டிசைன் தலைப்பு") }}
     </label>
     <label>
-      {{ form.subcategory.label }}
-      {{ form.subcategory(class_="input") }}
-    </label>
-    <label>
-      {{ form.image.label }}
-      {{ form.image(class_="input") }}
+      Images
+      <input type="file" name="images" class="input" accept="image/*" multiple required />
+      <div class="muted small">Select one or more images. The first image will be used as the primary thumbnail.</div>
     </label>
     <button class="btn" type="submit">Upload</button>
   </form>

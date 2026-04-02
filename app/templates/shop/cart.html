@@ -15,7 +15,7 @@
     <div class="cart-list">
       {% for item in cart %}
         <div class="cart-item">
-          <div class="ci-img" style="background-image:url({{ url_for('public.uploads', filename=item.image_filename) }});background-size:cover;background-position:center"></div>
+          <div class="ci-img" style="background-image:url({{ img_url(item.image_filename) }});background-size:cover;background-position:center"></div>
           <div class="ci-det">
             <div class="ci-name">{{ item.title_en if lang=='en' else item.title_ta }}</div>
             {% if item.areas %}

@@ -4,7 +4,7 @@
 {% block content %}
   <div class="page-header">
     <h1>{{ 'Complete Payment' if lang=='en' else 'பணம் செலுத்துங்கள்' }}</h1>
-    <p class="muted">{{ 'Order total: ₹' ~ order.total_inr ~ '. Pay via UPI below, then submit your transaction ID.' if lang=='en' else 'மொத்தம்: ₹' ~ order.total_inr ~ '. UPI மூலம் பணம் செலுத்தி, பின்னர் உங்கள் பரிவர்த்தனை ID ஐ சமர்ப்பிக்கவும்.' }}</p>
+    <p class="muted">{{ 'Order total: ₹' ~ order.total_inr ~ '. Pay via UPI below, then submit your transaction ID (or leave blank for manual approval).' if lang=='en' else 'மொத்தம்: ₹' ~ order.total_inr ~ '. UPI மூலம் பணம் செலுத்தி, பின்னர் உங்கள் பரிவர்த்தனை ID ஐ சமர்ப்பிக்கவும்.' }}</p>
   </div>
 
   <div class="payment-box">
@@ -19,14 +19,14 @@
     {% endif %}
     {% if upi_qr_filename %}
       <div class="upi-qr-wrap">
-        <img src="{{ url_for('public.uploads', filename=upi_qr_filename) }}" alt="UPI QR" class="upi-qr" />
+        <img src="{{ img_url(upi_qr_filename) }}" alt="UPI QR" class="upi-qr" />
       </div>
     {% endif %}
 
     <form class="form" method="post" action="{{ url_for('public.payment_post', token=order.token, lang=lang) }}">
       {{ form.hidden_tag() }}
-      <label>{{ 'Transaction ID' if lang=='en' else 'பரிவர்த்தனை ID' }} {{ form.transaction_id(class_="input", placeholder="e.g. 123456789012", required="required") }}</label>
-      <p class="muted small">{{ 'Please enter the 12-digit transaction ID from your bank app after making the UPI payment.' if lang=='en' else 'UPI மூலம் பணம் செலுத்திய பிறகு உங்கள் பேங்க் ஆப் இலிருந்து 12 இலக்க பரிவர்த்தனை ID ஐ உள்ளிடவும்.' }}</p>
+      <label>{{ 'Transaction ID (optional)' if lang=='en' else 'பரிவர்த்தனை ID (விரும்பினால்)' }} {{ form.transaction_id(class_="input", placeholder="e.g. 123456789012") }}</label>
+      <p class="muted small">{{ 'If you paid via UPI, enter the transaction ID from your bank app. Otherwise admin will verify manually.' if lang=='en' else 'UPI மூலம் செலுத்தினால் உங்கள் பாங்க் அப் இலிருந்து பரிவர்த்தனை ID ஐ உள்ளிடவும்.' }}</p>
       <button type="submit" class="btn sbtn">{{ "I've Paid — Submit" if lang=='en' else 'பணம் செலுத்தினேன் — சமர்ப்பிக்கவும்' }}</button>
     </form>
   </div>

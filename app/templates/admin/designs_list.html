@@ -15,7 +15,7 @@
   <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">
     {% for ds in designs %}
       <div class="card" style="padding: 12px; display: flex; flex-direction: column; gap: 8px;">
-        <img src="{{ url_for('public.uploads', filename=ds.image_filename) }}" alt="{{ ds.title_en }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px;">
+        <img src="{{ img_url(ds.image_filename) }}" alt="{{ ds.title_en }}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 4px;">
         
         <div>
           <strong style="display: block; font-size: 1.1rem; margin-top: 8px;">{{ ds.title_en }}</strong>

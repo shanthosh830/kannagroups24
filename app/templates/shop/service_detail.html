@@ -25,7 +25,7 @@
     <div class="grid grid-designs">
       {% for d in designs %}
         <a class="design-card" href="{{ url_for('public.design_detail', design_id=d.id, lang=lang) }}">
-          <img class="design-thumb" src="{{ url_for('public.uploads', filename=d.image_filename) }}" alt="{{ d.title_en }}" loading="lazy" />
+          <img class="design-thumb" src="{{ img_url(d.image_filename) }}" alt="{{ d.title_en }}" loading="lazy" />
           <div class="design-meta">
             <div class="card-title">{{ d.title_en if lang=='en' else d.title_ta }}</div>
             <div class="muted">{{ 'View price' if lang=='en' else 'விலை பார்க்க' }}</div>

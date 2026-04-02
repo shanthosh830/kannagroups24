@@ -4,67 +4,8 @@
 {% block content %}
   <div class="page-header">
     <h1>Dashboard</h1>
-    <p class="muted">Upload designs under each service. <a href="{{ url_for('admin.orders_list') }}">Orders</a> | <a href="{{ url_for('admin.custom_requests_list') }}">Custom Requests</a> | <a href="{{ url_for('admin.reviews_list') }}">Reviews</a> | <a href="{{ url_for('admin.expenses_list') }}">Expenses</a></p>
+    <p class="muted">Upload designs under each service. <a href="{{ url_for('admin.orders_list') }}">Orders</a> | <a href="{{ url_for('admin.custom_requests_list') }}">Custom Requests</a> | <a href="{{ url_for('admin.reviews_list') }}">Reviews</a></p>
   </div>
-
-  <div class="grid" style="margin-bottom:16px">
-    <div class="card">
-      <div class="card-title">Revenue</div>
-      <div class="muted">Today: ₹{{ today_revenue }}</div>
-      <div class="muted">This month: ₹{{ month_revenue }}</div>
-      <div class="muted">All time: ₹{{ total_revenue }}</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Expenses</div>
-      <div class="muted">Today: ₹{{ today_expenses }}</div>
-      <div class="muted">This month: ₹{{ month_expenses }}</div>
-      <div class="muted">All time: ₹{{ total_expenses }}</div>
-    </div>
-    <div class="card">
-      <div class="card-title">Profit</div>
-      <div class="muted">Today: ₹{{ today_revenue - today_expenses }}</div>
-      <div class="muted">This month: ₹{{ month_revenue - month_expenses }}</div>
-      <div class="muted">All time: ₹{{ total_revenue - total_expenses }}</div>
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-title">Last 7 Days (Profit/Loss)</div>
-    <canvas id="plChart" width="400" height="100"></canvas>
-  </div>
-  
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    const ctx = document.getElementById('plChart').getContext('2d');
-    const labels = {{ chart_labels | tojson }};
-    const rev = {{ chart_rev | tojson }};
-    const exp = {{ chart_exp | tojson }};
-    const profit = rev.map((r, i) => r - exp[i]);
-    
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Profit (₹)',
-            data: profit,
-            backgroundColor: profit.map(p => p >= 0 ? 'rgba(75, 192, 192, 0.6)' : 'rgba(255, 99, 132, 0.6)'),
-          },
-          {
-             label: 'Revenue',
-             data: rev,
-             type: 'line',
-             borderColor: 'rgba(54, 162, 235, 1)',
-             fill: false
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-      }
-    });
-  </script>
 
   <div class="grid">
     {% for s in services %}
@@ -74,7 +15,6 @@
         <div class="card-actions">
           <a class="btn btn-outline" href="{{ url_for('public.service_detail', slug=s.slug) }}" target="_blank" rel="noreferrer">View public</a>
           <a class="btn" href="{{ url_for('admin.design_new', slug=s.slug) }}">Upload design</a>
-          <a class="btn btn-outline" href="{{ url_for('admin.designs_list', slug=s.slug) }}">Manage designs</a>
         </div>
       </div>
     {% endfor %}

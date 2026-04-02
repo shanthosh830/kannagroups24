@@ -38,7 +38,7 @@
   <div class="field" style="margin-top:20px;">
     {{ form.image.label }} current: {{ design.image_filename }}
     <div style="margin-bottom:8px;">
-      <img src="{{ url_for('public.uploads', filename=design.image_filename) }}" style="width: 100px; border-radius: 4px;">
+      <img src="{{ img_url(design.image_filename) }}" style="width: 100px; border-radius: 4px;">
     </div>
     {{ form.image }}
     <div class="muted small">Leave empty to keep the current image</div>

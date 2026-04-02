@@ -11,14 +11,19 @@
     <header class="topbar">
       <div class="container topbar-inner">
         <a class="brand" href="{{ url_for('public.home', lang=lang) }}">{{ business_name or "Kanna Groups" }}</a>
-        <nav class="nav">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+        <nav class="nav" id="mainNav">
           <a href="{{ url_for('public.home', lang=lang) }}">{{ 'Home' if lang=='en' else 'முகப்பு' }}</a>
           <a href="{{ url_for('public.about', lang=lang) }}">{{ 'About' if lang=='en' else 'எங்களைப் பற்றி' }}</a>
           <a href="{{ url_for('public.cart_page', lang=lang) }}">{{ 'Cart' if lang=='en' else 'கார்ட்' }}{% if cart_count %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}</a>
           <a href="{{ url_for('public.my_orders', lang=lang) }}">{{ 'My Orders' if lang=='en' else 'என் ஆர்டர்கள்' }}</a>
           <a href="{{ url_for('public.reviews_page', lang=lang) }}">{{ 'Reviews' if lang=='en' else 'ரிவியூக்கள்' }}</a>
+          <div class="lang lang-mobile">
+            <a class="{{ 'active' if lang=='en' else '' }}" href="{{ request.path }}?lang=en">EN</a>
+            <a class="{{ 'active' if lang=='ta' else '' }}" href="{{ request.path }}?lang=ta">TA</a>
+          </div>
         </nav>
-        <div class="lang">
+        <div class="lang lang-desktop">
           <a class="{{ 'active' if lang=='en' else '' }}" href="{{ request.path }}?lang=en">EN</a>
           <a class="{{ 'active' if lang=='ta' else '' }}" href="{{ request.path }}?lang=ta">TA</a>
         </div>
@@ -59,6 +64,27 @@
         </a>
       </div>
     {% endif %}
+
+    <script>
+      (function(){
+        var btn = document.getElementById('menuToggle');
+        var nav = document.getElementById('mainNav');
+        if(!btn || !nav) return;
+        btn.addEventListener('click', function(){
+          var open = nav.classList.toggle('open');
+          btn.setAttribute('aria-expanded', open);
+          btn.textContent = open ? '✕' : '☰';
+        });
+        // Close menu when a nav link is clicked
+        nav.querySelectorAll('a').forEach(function(a){
+          a.addEventListener('click', function(){
+            nav.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.textContent = '☰';
+          });
+        });
+      })();
+    </script>
   </body>
 </html>
 

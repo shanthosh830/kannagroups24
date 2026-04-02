@@ -13,10 +13,17 @@
       <img
         id="zoomTarget"
         class="product-image"
-        src="{{ url_for('public.uploads', filename=design.image_filename) }}"
+        src="{{ img_url(design.image_filename) }}"
         alt="{{ design.title_en }}"
         data-zoomable="true"
       />
+      {% if design.images|length > 1 %}
+        <div class="design-gallery" style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          {% for image in design.images %}
+            <img src="{{ image.image_url }}" width="80" style="border-radius:6px;cursor:pointer;border:2px solid transparent;object-fit:cover;height:80px" onclick="document.getElementById('zoomTarget').src=this.src" alt="Design image {{ loop.index }}" />
+          {% endfor %}
+        </div>
+      {% endif %}
       <div class="muted small">
         {% if lang == 'en' %}
           Click image to zoom. Use mouse wheel or +/- buttons.
@@ -53,11 +60,6 @@
             {% if options and options.enable_sl_butta %}<label class="area-check"><input type="checkbox" name="areas" value="sl_butta"> {{ 'Sleeve with Butta' if lang=='en' else 'சட்டை + புத்தா' }}</label>{% endif %}
           </div>
           <p class="muted small" style="margin-top:8px">{{ 'Stitches are hidden. Price is calculated automatically.' if lang=='en' else 'ஸ்டிட்சஸ் காண்பிக்கப்படாது. விலை தானாக கணக்கிடப்படும்.' }}</p>
-          
-          <h3 style="margin:16px 0 8px;font-size:1rem">{{ 'Additional Services' if lang=='en' else 'கூடுதல் சேவைகள்' }}</h3>
-          <div class="area-checks">
-            <label class="area-check"><input type="checkbox" name="stitching" value="yes"> {{ 'Include Stitching Service' if lang=='en' else 'தையல் சேவையைச் சேர்க்கவும்' }}</label>
-          </div>
         </div>
 
         <button type="submit" class="btn atcbtn" id="addBtn" disabled>{{ 'Add to Cart' if lang=='en' else 'கார்ட்டில் சேர்' }}</button>
@@ -95,24 +97,13 @@
         addBtn.disabled = areas.length === 0;
         if (areas.length === 0) return;
         const qs = areas.map(a => 'areas=' + encodeURIComponent(a)).join('&');
-        const stitching = form.querySelector('input[name="stitching"]');
-        const hasStitching = stitching && stitching.checked;
-        const stitchingQs = hasStitching ? '&stitching=yes' : '';
-        
-        try {
-          const res = await fetch('{{ url_for("public.design_quote", design_id=design.id, lang=lang) }}' + '&' + qs + stitchingQs);
-          const data = await res.json();
-          const p = data.price_inr || 0;
-          if (p > 0) {
-            priceBox.textContent = '₹' + p;
-            addBtn.disabled = false;
-          } else {
-            priceBox.textContent = '{{ "Price not set yet" if lang=="en" else "விலை இன்னும் அமைக்கவில்லை" }}';
-            addBtn.disabled = true;
-          }
-        } catch (e) {
-          console.error(e);
-          addBtn.disabled = true;
+        const res = await fetch('{{ url_for("public.design_quote", design_id=design.id, lang=lang) }}' + '&' + qs);
+        const data = await res.json();
+        const p = data.price_inr || 0;
+        if (p > 0) {
+          priceBox.textContent = '₹' + p;
+        } else {
+          priceBox.textContent = '{{ "Price not set yet" if lang=="en" else "விலை இன்னும் அமைக்கவில்லை" }}';
         }
       };
       form.addEventListener('change', update);

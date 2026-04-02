@@ -10,13 +10,6 @@
   <div class="detail-card">
     <h3>Customer</h3>
     <p><strong>{{ order.customer_name }}</strong><br />{{ order.customer_phone }}{% if order.customer_email %} | {{ order.customer_email }}{% endif %}<br />{{ order.address }}</p>
-    <p><strong>Order type:</strong> {{ order.order_type }}</p>
-    {% if order.referral_code %}
-      <p><strong>Referral code used:</strong> {{ order.referral_code }}</p>
-    {% endif %}
-    {% if order.referral_discount_inr %}
-      <p><strong>Referral discount:</strong> ₹{{ order.referral_discount_inr }}</p>
-    {% endif %}
   </div>
   <div class="detail-card">
     <h3>Items</h3>
@@ -28,7 +21,7 @@
     <p><strong>Total: ₹{{ order.total_inr }}</strong></p>
   </div>
   <div class="detail-card">
-    <h3>Status: <span style="text-transform:capitalize">{{ order.status | replace('_', ' ') }}</span></h3>
+    <h3>Status: {{ order.status }}</h3>
     {% if order.transaction_id %}
       <p>Transaction ID: <code>{{ order.transaction_id }}</code></p>
     {% endif %}
@@ -36,44 +29,19 @@
       <p>Admin notes: {{ order.admin_notes }}</p>
     {% endif %}
 
-    {# Mark as Paid — requires transaction ID #}
     {% if order.status in ['pending_payment', 'pending_approval'] %}
-      <form method="post" action="{{ url_for('admin.order_mark_paid', order_id=order.id) }}" class="form-inline" style="margin-top:12px">
+      <form method="post" action="{{ url_for('admin.order_mark_paid', order_id=order.id) }}" class="form-inline">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="text" name="transaction_id" placeholder="Transaction ID (required)" value="{{ order.transaction_id or '' }}" required style="margin-bottom:8px" />
-        <input type="text" name="admin_notes" placeholder="Admin notes (optional)" value="{{ order.admin_notes or '' }}" style="margin-bottom:8px" />
-        <button type="submit" class="btn">✅ Mark as Paid</button>
+        <input type="text" name="transaction_id" placeholder="Transaction ID (optional)" value="{{ order.transaction_id or '' }}" />
+        <input type="text" name="admin_notes" placeholder="Admin notes (optional)" value="{{ order.admin_notes or '' }}" />
+        <button type="submit" class="btn">Mark as Paid</button>
       </form>
     {% endif %}
-
-    {# Mark as Completed (Work Done) #}
-    {% if order.status in ['paid', 'processing'] %}
-      <form method="post" action="{{ url_for('admin.order_mark_completed', order_id=order.id) }}" style="margin-top:8px">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <button type="submit" class="btn" style="background:linear-gradient(135deg,#22c55e,#16a34a)">✔️ Mark as Completed (Work Done)</button>
-      </form>
-    {% endif %}
-
-    {# Mark as Delivered (Given to customer) #}
-    {% if order.status == 'completed' %}
-      <form method="post" action="{{ url_for('admin.order_mark_delivered', order_id=order.id) }}" style="margin-top:8px">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <button type="submit" class="btn" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">🚚 Mark as Delivered</button>
-      </form>
-    {% endif %}
-
-    {# Cancel Order #}
     {% if order.status not in ['cancelled', 'completed'] %}
       <form method="post" action="{{ url_for('admin.order_cancel', order_id=order.id) }}" style="margin-top:8px">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <button type="submit" class="btn btn-outline">❌ Cancel Order</button>
+        <button type="submit" class="btn btn-outline">Cancel Order</button>
       </form>
     {% endif %}
-
-    {# Delete Order Permanently #}
-    <form method="post" action="{{ url_for('admin.order_delete', order_id=order.id) }}" style="margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:16px;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-      <button type="submit" class="btn" style="background:#ef4444; color:#fff" onclick="return confirm('Are you sure you want to completely delete this order history? This cannot be undone and it will be removed from all reports.')">🗑️ Delete Order Permanently</button>
-    </form>
   </div>
 {% endblock %}

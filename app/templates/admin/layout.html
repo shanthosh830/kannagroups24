@@ -10,15 +10,14 @@
     <header class="topbar">
       <div class="container topbar-inner">
         <a class="brand" href="{{ url_for('admin.dashboard') }}">Admin</a>
-        <nav class="nav">
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+        <nav class="nav" id="mainNav">
           <a href="{{ url_for('admin.dashboard') }}">Dashboard</a>
           <a href="{{ url_for('admin.orders_list') }}">Orders</a>
-          <a href="{{ url_for('admin.tailors_list') }}">Tailors</a>
           <a href="{{ url_for('admin.custom_requests_list') }}">Custom Requests</a>
           <a href="{{ url_for('admin.reviews_list') }}">Reviews</a>
           <a href="{{ url_for('admin.settings') }}">Settings</a>
           {% if current_user.is_authenticated and current_user.role == 'owner' %}
-
             <a href="{{ url_for('admin.user_new') }}">Create User</a>
           {% endif %}
           <a href="{{ url_for('admin.logout') }}">Logout</a>
@@ -38,6 +37,26 @@
       {% endwith %}
       {% block content %}{% endblock %}
     </main>
+
+    <script>
+      (function(){
+        var btn = document.getElementById('menuToggle');
+        var nav = document.getElementById('mainNav');
+        if(!btn || !nav) return;
+        btn.addEventListener('click', function(){
+          var open = nav.classList.toggle('open');
+          btn.setAttribute('aria-expanded', open);
+          btn.textContent = open ? '✕' : '☰';
+        });
+        nav.querySelectorAll('a').forEach(function(a){
+          a.addEventListener('click', function(){
+            nav.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.textContent = '☰';
+          });
+        });
+      })();
+    </script>
   </body>
 </html>
 

@@ -1,17 +1,15 @@
 from __future__ import annotations
 
-import math
 import secrets
-from pathlib import Path
 
+import cloudinary.uploader
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, send_from_directory, session, url_for
-from werkzeug.utils import secure_filename
+from pathlib import Path
 
 from ..extensions import db
 from ..models import (
     CustomRequest,
     Design,
-    DesignStitches,
     Order,
     OrderItem,
     Review,
@@ -20,10 +18,6 @@ from ..models import (
     get_setting,
     ORDER_STATUS_PENDING_APPROVAL,
     ORDER_STATUS_PENDING_PAYMENT,
-    ORDER_STATUS_CANCELLED,
-    ORDER_STATUS_COMPLETED,
-    ORDER_STATUS_DELIVERED,
-    ORDER_STATUS_PAID,
 )
 from ..forms import CheckoutForm, CustomDesignForm, PaymentConfirmForm, ReviewForm
 
@@ -47,14 +41,7 @@ def _set_cart(cart_list):
 
 
 def _cart_total(cart_list):
-    stitching_rate = int(get_setting("stitching_rate", "500"))
-    total = 0
-    for item in cart_list:
-        subtotal = item["price_inr"] * item["qty"]
-        if item.get("include_stitching"):
-            subtotal += stitching_rate * item["qty"]
-        total += subtotal
-    return total
+    return sum(item["price_inr"] * item["qty"] for item in cart_list)
 
 
 @bp.get("/")
@@ -91,29 +78,18 @@ def service_detail(slug: str):
     if slug == "embroidery":
         # Tabs: custom design (separate page), our designs, new arrivals (latest uploads)
         tab = request.args.get("tab", "our")
-        subcat = request.args.get("subcat", "all")
-
         from datetime import datetime, timedelta
 
         cutoff = datetime.utcnow() - timedelta(days=14)
         new_arrivals = [
             d for d in designs if d.is_new_arrival or (d.created_at and d.created_at >= cutoff)
         ]
-
-        # Subcategory tabs inside our designs
-        subcategories = sorted({(d.subcategory or "other") for d in designs})
-        filtered_designs = designs
-        if tab == "our" and subcat and subcat != "all":
-            filtered_designs = [d for d in designs if (d.subcategory or "other") == subcat]
-
         return render_template(
             "shop/embroidery.html",
             service=service,
             tab=tab,
-            designs=filtered_designs,
+            designs=designs,
             new_arrivals=new_arrivals,
-            subcategories=subcategories,
-            active_subcat=subcat,
             lang=_lang(),
             business_name=get_setting("business_name", "Kanna Groups"),
             whatsapp=get_setting("whatsapp_number", "+919344272890"),
@@ -183,74 +159,7 @@ def design_quote(design_id: int):
     design = Design.query.get_or_404(design_id)
     areas = request.args.getlist("areas")
     price = calc_price_inr_for_selection(design, areas)
-    
-    stitching = request.args.get("stitching") == "yes"
-    if stitching and price > 0:
-        stitching_rate = int(get_setting("stitching_rate", "500"))
-        price += stitching_rate
-        
     return {"price_inr": price}
-
-
-def _detect_user_type(phone: str, cart_qty: int = 0) -> tuple:
-    """
-    Detect if a phone belongs to a tailor.
-    Returns (type_str, reason_str).
-    Conditions (any one triggers tailor):
-      1. Phone is in the registered Tailors list
-      2. Phone has >= N orders in the last 30 days (N = tailor_auto_order_threshold setting)
-      3. Current cart has >= B items (B = tailor_bulk_threshold setting)
-    """
-    from ..models import Tailor, Order
-    from datetime import datetime, timedelta
-
-    # 1. Registered tailor
-    if Tailor.query.filter_by(phone=phone).first():
-        return ("tailor", "registered")
-
-    # 2. Order history check
-    try:
-        order_threshold = int(get_setting("tailor_auto_order_threshold", "5"))
-    except Exception:
-        order_threshold = 5
-    try:
-        days_window = int(get_setting("tailor_auto_days_window", "30"))
-    except Exception:
-        days_window = 30
-
-    if order_threshold > 0:
-        since = datetime.utcnow() - timedelta(days=days_window)
-        recent_count = Order.query.filter(
-            Order.customer_phone == phone,
-            Order.created_at >= since,
-        ).count()
-        if recent_count >= order_threshold:
-            return ("tailor", "frequent")
-
-    # 3. Bulk cart check
-    try:
-        bulk_threshold = int(get_setting("tailor_bulk_threshold", "5"))
-    except Exception:
-        bulk_threshold = 5
-    if bulk_threshold > 0 and cart_qty >= bulk_threshold:
-        return ("tailor", "bulk")
-
-    return ("customer", "")
-
-
-@bp.get("/check-phone")
-def check_phone():
-    """Check if a phone number belongs to a tailor (registered, frequent, or bulk)."""
-    phone = request.args.get("phone", "").strip()
-    cart_qty = request.args.get("cart_qty", "0")
-    try:
-        cart_qty = int(cart_qty)
-    except Exception:
-        cart_qty = 0
-    if not phone:
-        return {"type": "customer", "reason": ""}
-    user_type, reason = _detect_user_type(phone, cart_qty)
-    return {"type": user_type, "reason": reason}
 
 
 # ---- Shop (all designs with filters and sort) ----
@@ -265,14 +174,6 @@ def shop():
     if cat != "all":
         q = q.filter(Service.slug == cat)
     designs = q.order_by(Design.created_at.desc()).all()
-
-    # Ensure designs have their min_price calculated.
-    for d in designs:
-        if d.min_price_inr is None:
-            from ..models import recompute_design_min_price
-
-            recompute_design_min_price(d)
-    db.session.commit()
 
     if price_filter != "all":
         ranges = {
@@ -336,10 +237,9 @@ def cart_add():
     if price <= 0:
         flash("This design pricing is not configured yet. Please contact us.", "error")
         return redirect(url_for("public.design_detail", design_id=design_id))
-    include_stitching = request.form.get("stitching") == "yes"
     cart_list = _get_cart()
     for item in cart_list:
-        if item["design_id"] == design_id and item.get("areas") == ",".join(selected_areas) and item.get("include_stitching") == include_stitching:
+        if item["design_id"] == design_id and item.get("areas") == ",".join(selected_areas):
             item["qty"] += qty
             _set_cart(cart_list)
             flash("Cart updated.", "success")
@@ -352,7 +252,6 @@ def cart_add():
         "price_inr": price,
         "image_filename": design.image_filename,
         "areas": ",".join(selected_areas),
-        "include_stitching": include_stitching,
     })
     _set_cart(cart_list)
     flash("Added to cart.", "success")
@@ -396,7 +295,6 @@ def checkout_post():
     if not cart_list:
         flash("Cart is empty.", "error")
         return redirect(url_for("public.shop"))
-
     form = CheckoutForm()
     if not form.validate_on_submit():
         total = _cart_total(cart_list)
@@ -410,92 +308,19 @@ def checkout_post():
             whatsapp=get_setting("whatsapp_number", "+919344272890"),
             location=get_setting("location", ""),
         ), 400
-
-    # Prevent placing a new order if there are previous orders not yet completed/cancelled.
-    prev = Order.query.filter(
-        Order.customer_phone == form.customer_phone.data.strip(),
-        Order.status.notin_([ORDER_STATUS_COMPLETED, ORDER_STATUS_CANCELLED, ORDER_STATUS_DELIVERED]),
-    ).first()
-    if prev:
-        flash(
-            "You have an existing order that is not yet completed. Please wait until it is processed or contact us.",
-            "error",
-        )
-        return redirect(url_for("public.my_orders"))
-
-    customer_phone = form.customer_phone.data.strip()
-    cart_qty = sum(item.get("qty", 1) for item in cart_list)
-    order_type, _reason = _detect_user_type(customer_phone, cart_qty)
-
-    # If tailor order, revert customer markup from cart prices
-    # Wait, instead of mutating cart_list in-place (which might be confusing), we do it for total and order items.
-    if order_type == "tailor":
-        try:
-            markup_percent = int(get_setting("customer_markup_percent", "0") or 0)
-        except Exception:
-            markup_percent = 0
-        if markup_percent and markup_percent > 0:
-            for item in cart_list:
-                item_price = item.get("price_inr", 0)
-                # Derive base price from markup-adjusted price.
-                base_price = math.ceil(item_price / (1 + markup_percent / 100))
-                item["price_inr"] = max(0, base_price)
-
     total = _cart_total(cart_list)
-
-    # Apply referral discount based on unused referrals generated by this customer
-    # i.e., other paid orders where referral_code == this customer's token
-    try:
-        referral_discount_val = int(get_setting("referral_discount_inr", "50"))
-    except Exception:
-        referral_discount_val = 50
-
-    my_past_orders = Order.query.filter_by(customer_phone=customer_phone, status=ORDER_STATUS_PAID).all()
-    my_tokens = [o.token for o in my_past_orders]
-    
-    referral_discount = 0
-    used_referrals = []
-    if my_tokens and referral_discount_val > 0:
-        unused_refs = Order.query.filter(
-            Order.referral_code.in_(my_tokens),
-            Order.status == ORDER_STATUS_PAID,
-            Order.referral_reward_used == False
-        ).all()
-        for ref in unused_refs:
-            if total_after_discount >= referral_discount_val:
-                referral_discount += referral_discount_val
-                used_referrals.append(ref)
-            else:
-                break # Not enough total to use another coupon
-
-    total_after_discount = max(0, total - referral_discount)
-
     token = secrets.token_urlsafe(32)
-    # the referral_code requested by user during THIS checkout
-    referral_code_used = (form.referral_code.data or "").strip() or None
-    
-    # Optional logic: make sure they aren't using their own code
-    if referral_code_used and referral_code_used in my_tokens:
-        flash("You cannot use your own referral code.", "error")
-        return redirect(url_for("public.checkout"))
-
     order = Order(
         token=token,
         customer_name=form.customer_name.data.strip(),
-        customer_phone=customer_phone,
+        customer_phone=form.customer_phone.data.strip(),
         customer_email=(form.customer_email.data or "").strip() or None,
         address=form.address.data.strip(),
-        total_inr=total_after_discount,
-        order_type=order_type,
-        referral_code=referral_code_used,
-        referral_discount_inr=referral_discount if referral_discount > 0 else None,
+        total_inr=total,
         status=ORDER_STATUS_PENDING_PAYMENT,
     )
     db.session.add(order)
     db.session.flush()
-
-    for ref in used_referrals:
-        ref.referral_reward_used = True
     for item in cart_list:
         oi = OrderItem(
             order_id=order.id,
@@ -504,7 +329,6 @@ def checkout_post():
             price_inr=item["price_inr"],
             quantity=item["qty"],
             selected_areas=item.get("areas"),
-            include_stitching=item.get("include_stitching", False),
         )
         db.session.add(oi)
     db.session.commit()
@@ -540,10 +364,7 @@ def payment_post(token: str):
         flash("Order already processed.", "info")
         return redirect(url_for("public.order_status", token=token))
     txn_id = (request.form.get("transaction_id") or "").strip()
-    if not txn_id:
-        flash("Transaction ID is required.", "error")
-        return redirect(url_for("public.payment", token=token))
-    order.transaction_id = txn_id
+    order.transaction_id = txn_id or None
     order.status = ORDER_STATUS_PENDING_APPROVAL
     db.session.commit()
     flash("Thank you. We will confirm your payment shortly. You can check status below.", "success")
@@ -585,9 +406,8 @@ def custom_design_post():
     image_filename = None
     if form.image.data and form.image.data.filename:
         f = form.image.data
-        ext = Path(secure_filename(f.filename)).suffix.lower()
-        image_filename = secrets.token_hex(8) + ext
-        f.save(Path(current_app.config["UPLOAD_FOLDER"]) / image_filename)
+        result = cloudinary.uploader.upload(f, folder="kannagroups/custom")
+        image_filename = result["secure_url"]
     req = CustomRequest(
         customer_name=form.customer_name.data.strip(),
         customer_phone=form.customer_phone.data.strip(),

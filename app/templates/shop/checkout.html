@@ -23,62 +23,9 @@
   <form class="form" method="post" action="{{ url_for('public.checkout_post', lang=lang) }}">
     {{ form.hidden_tag() }}
     <label>{{ form.customer_name.label }} {{ form.customer_name(class_="input") }}</label>
-    <label>{{ form.customer_phone.label }} {{ form.customer_phone(class_="input", id="phoneInput") }}</label>
-
-    <div id="userTypeBadge" style="margin: -8px 0 12px; padding: 8px 16px; border-radius: 8px; font-weight: 600; display: none;"></div>
-
+    <label>{{ form.customer_phone.label }} {{ form.customer_phone(class_="input") }}</label>
     <label>{{ form.customer_email.label }} {{ form.customer_email(class_="input") }}</label>
     <label>{{ form.address.label }} {{ form.address(class_="input", rows=3) }}</label>
-    <label>{{ form.referral_code.label }} {{ form.referral_code(class_="input") }}</label>
     <button type="submit" class="btn order-btn">{{ 'Place Order' if lang=='en' else 'ஆர்டர் செய்' }}</button>
   </form>
-
-  <script>
-    (function() {
-      const phoneInput = document.getElementById('phoneInput');
-      const badge = document.getElementById('userTypeBadge');
-      if (!phoneInput || !badge) return;
-
-      let timeout = null;
-      phoneInput.addEventListener('input', function() {
-        clearTimeout(timeout);
-        const phone = this.value.trim();
-        if (phone.length < 5) {
-          badge.style.display = 'none';
-          return;
-        }
-        timeout = setTimeout(async () => {
-          try {
-            const cartQty = {{ cart|length }};
-            const res = await fetch('/check-phone?phone=' + encodeURIComponent(phone) + '&cart_qty=' + cartQty);
-            const data = await res.json();
-            badge.style.display = 'block';
-            if (data.type === 'tailor') {
-              let msg = '✂️ ';
-              if (data.reason === 'registered') {
-                msg += '{{ "Registered tailor — tailor pricing applied" if lang=="en" else "பதிவு செய்யப்பட்ட டெய்லர் — டெய்லர் விலை" }}';
-              } else if (data.reason === 'frequent') {
-                msg += '{{ "Frequent buyer (5+ orders in 30 days) — tailor pricing applied" if lang=="en" else "அடிக்கடி வாங்குபவர் (30 நாட்களில் 5+ ஆர்டர்கள்) — டெய்லர் விலை" }}';
-              } else if (data.reason === 'bulk') {
-                msg += '{{ "Bulk order detected — tailor pricing applied" if lang=="en" else "மொத்த ஆர்டர் — டெய்லர் விலை" }}';
-              } else {
-                msg += '{{ "Tailor pricing applied" if lang=="en" else "டெய்லர் விலை பொருந்தும்" }}';
-              }
-              badge.textContent = msg;
-              badge.style.background = 'rgba(34,197,94,0.15)';
-              badge.style.color = '#22c55e';
-              badge.style.border = '1px solid rgba(34,197,94,0.3)';
-            } else {
-              badge.textContent = '👤 {{ "Customer account — standard pricing" if lang=="en" else "வாடிக்கையாளர் கணக்கு — சாதாரண விலை" }}';
-              badge.style.background = 'rgba(99,102,241,0.15)';
-              badge.style.color = '#818cf8';
-              badge.style.border = '1px solid rgba(99,102,241,0.3)';
-            }
-          } catch(e) {
-            badge.style.display = 'none';
-          }
-        }, 500);
-      });
-    })();
-  </script>
 {% endblock %}

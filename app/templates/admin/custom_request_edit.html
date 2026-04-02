@@ -17,7 +17,7 @@
     {% endif %}
     {% if req.image_filename %}
       <p>
-        <a href="{{ url_for('public.uploads', filename=req.image_filename) }}" target="_blank">View Reference Image</a>
+        <a href="{{ img_url(req.image_filename) }}" target="_blank">View Reference Image</a>
       </p>
     {% endif %}
   </div>

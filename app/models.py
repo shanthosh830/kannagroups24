@@ -208,8 +208,31 @@ def calc_price_inr_for_selection(design: Design, selected: list[str]) -> int:
         if not design.design_charge_first_order_only or not design.design_charge_applied_once:
             base_price += int(design.design_charge_inr)
 
-    if "stitching" in selected and design.stitching_charge_inr and design.stitching_charge_inr > 0:
-        base_price += int(design.stitching_charge_inr)
+    stitching_opt = None
+    if "stitching_with_lining" in selected:
+        stitching_opt = "with_lining"
+    elif "stitching_without_lining" in selected:
+        stitching_opt = "without_lining"
+    elif "stitching" in selected:
+        stitching_opt = "default"
+
+    if stitching_opt:
+        added_stitching = False
+        if stitching_opt in ["with_lining", "without_lining"]:
+            service_slug = design.service.slug.lower()
+            if "aari" in service_slug:
+                ds_slug = "aari"
+            elif "embroidery" in service_slug:
+                ds_slug = "embroidery"
+            else:
+                ds_slug = "normal"
+            val = get_setting(f"stitching_{ds_slug}_{stitching_opt}", "")
+            if val.isdigit() and int(val) > 0:
+                base_price += int(val)
+                added_stitching = True
+
+        if not added_stitching and design.stitching_charge_inr and design.stitching_charge_inr > 0:
+            base_price += int(design.stitching_charge_inr)
 
     return max(0, base_price)
 

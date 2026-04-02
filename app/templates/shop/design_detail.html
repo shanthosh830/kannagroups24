@@ -58,7 +58,22 @@
             {% if options and options.enable_sl %}<label class="area-check"><input type="checkbox" name="areas" value="sl"> {{ 'Sleeve' if lang=='en' else 'சட்டை' }}</label>{% endif %}
             {% if options and options.enable_bn_butta %}<label class="area-check"><input type="checkbox" name="areas" value="bn_butta"> {{ 'Back Neck with Butta' if lang=='en' else 'பின் கழுத்து + புத்தா' }}</label>{% endif %}
             {% if options and options.enable_sl_butta %}<label class="area-check"><input type="checkbox" name="areas" value="sl_butta"> {{ 'Sleeve with Butta' if lang=='en' else 'சட்டை + புத்தா' }}</label>{% endif %}
-            {% if options %}<label class="area-check"><input type="checkbox" name="areas" value="stitching"> {{ 'Need Stitching Service' if lang=='en' else 'தையல் சேவை தேவை' }}{% if design.stitching_charge_inr and design.stitching_charge_inr > 0 %} (+ ₹{{ design.stitching_charge_inr }}){% endif %}</label>{% endif %}
+            {% if options %}
+              <div style="margin-top:8px;">
+                <label class="area-check" style="display:inline-flex;">
+                  <input type="checkbox" id="stitchingCheck" value="stitching"> 
+                  {{ 'Need Stitching Service' if lang=='en' else 'தையல் சேவை தேவை' }}
+                </label>
+                <div id="stitchingOptions" style="display:none; margin-left: 24px; margin-top: 4px;">
+                  <select id="stitchingLining" class="input" style="padding:4px; font-size:0.9rem;">
+                    <option value="stitching_with_lining">With Lining</option>
+                    <option value="stitching_without_lining">Without Lining</option>
+                    <option value="stitching">Custom / Ask on WhatsApp</option>
+                  </select>
+                  <input type="hidden" name="areas" id="hiddenStitchingVal" disabled>
+                </div>
+              </div>
+            {% endif %}
           </div>
           <p class="muted small" style="margin-top:8px">{{ 'Stitches are hidden. Price is calculated automatically.' if lang=='en' else 'ஸ்டிட்சஸ் காண்பிக்கப்படாது. விலை தானாக கணக்கிடப்படும்.' }}</p>
         </div>
@@ -95,6 +110,24 @@
       if (!form || !priceBox || !addBtn) return;
       const update = async () => {
         const areas = Array.from(form.querySelectorAll('input[name="areas"]:checked')).map(x => x.value);
+        
+        // Handle stitching selection
+        const sCheck = document.getElementById('stitchingCheck');
+        const sOpts = document.getElementById('stitchingOptions');
+        const sLining = document.getElementById('stitchingLining');
+        const sHidden = document.getElementById('hiddenStitchingVal');
+        if (sCheck && sOpts && sLining && sHidden) {
+          if (sCheck.checked) {
+            sOpts.style.display = 'block';
+            sHidden.disabled = false;
+            sHidden.value = sLining.value;
+            areas.push(sLining.value);
+          } else {
+            sOpts.style.display = 'none';
+            sHidden.disabled = true;
+          }
+        }
+        
         addBtn.disabled = areas.length === 0;
         if (areas.length === 0) return;
         const qs = areas.map(a => 'areas=' + encodeURIComponent(a)).join('&');

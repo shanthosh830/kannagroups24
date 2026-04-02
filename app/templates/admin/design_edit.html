@@ -4,20 +4,11 @@
 {% block content %}
 <div class="page-header">
   <h1>Edit Design {{ design.title_en }}</h1>
-  <p class="muted">Update the title, subcategory or upload a new image.</p>
+  <p class="muted">Update the title or upload a new image.</p>
 </div>
 
 <form method="post" enctype="multipart/form-data" class="card" style="max-width: 600px;">
   {{ form.csrf_token }}
-  
-  <div class="field">
-    {{ form.subcategory.label }}
-    {{ form.subcategory }}
-    {% if form.subcategory.errors %}
-      <div class="form-error">{{ form.subcategory.errors[0] }}</div>
-    {% endif %}
-    <span class="muted small">Leave blank unless you are using chudi/blouse tabs</span>
-  </div>
 
   <div class="field">
     {{ form.title_en.label }}

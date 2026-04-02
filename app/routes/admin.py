@@ -4,9 +4,10 @@ import secrets
 from pathlib import Path
 
 import cloudinary.uploader
-from flask import Blueprint, current_app, flash, redirect, render_template, request, url_for
+from flask import Blueprint, Response, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.utils import secure_filename
+import os
 
 from ..extensions import db, limiter
 from ..models import (

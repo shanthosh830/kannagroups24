@@ -23,7 +23,9 @@
     {% elif order.status == 'processing' %}
       <p class="status-msg status-success">{{ 'Order is being processed.' if lang=='en' else 'ஆர்டர் செயலாக்கப்படுகிறது.' }}</p>
     {% elif order.status == 'completed' %}
-      <p class="status-msg status-success">{{ 'Order completed. Thank you!' if lang=='en' else 'ஆர்டர் முடிந்தது. நன்றி!' }}</p>
+      <p class="status-msg status-success">{{ 'Order Dispatched / Ready for Delivery.' if lang=='en' else 'ஆர்டர் அனுப்பப்பட்டது / டெலிவரிக்கு தயாராக உள்ளது.' }}</p>
+    {% elif order.status == 'delivered' %}
+      <p class="status-msg status-success">{{ 'Order Delivered. Thank you!' if lang=='en' else 'ஆர்டர் டெலிவரி செய்யப்பட்டது. நன்றி!' }}</p>
     {% elif order.status == 'cancelled' %}
       <p class="status-msg status-cancel">{{ 'Order was cancelled.' if lang=='en' else 'ஆர்டர் ரத்து செய்யப்பட்டது.' }}</p>
     {% endif %}

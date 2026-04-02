@@ -9,3 +9,4 @@ gunicorn
 cloudinary
 psycopg2-binary
 python-dotenv>=1.0,<2
+Flask-Limiter>=3.0,<4

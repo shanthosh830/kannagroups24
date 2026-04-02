@@ -37,7 +37,22 @@
         <button type="submit" class="btn">Mark as Paid</button>
       </form>
     {% endif %}
-    {% if order.status not in ['cancelled', 'completed'] %}
+    
+    {% if order.status in ['paid', 'processing'] %}
+      <form method="post" action="{{ url_for('admin.order_mark_completed', order_id=order.id) }}" style="margin-top:8px">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn">Mark as Completed</button>
+      </form>
+    {% endif %}
+
+    {% if order.status == 'completed' %}
+      <form method="post" action="{{ url_for('admin.order_mark_delivered', order_id=order.id) }}" style="margin-top:8px">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn">Mark as Delivered</button>
+      </form>
+    {% endif %}
+
+    {% if order.status not in ['cancelled', 'completed', 'delivered'] %}
       <form method="post" action="{{ url_for('admin.order_cancel', order_id=order.id) }}" style="margin-top:8px">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <button type="submit" class="btn btn-outline">Cancel Order</button>

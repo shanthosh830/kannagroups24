@@ -6,7 +6,7 @@ from pathlib import Path
 import cloudinary
 from flask import Flask
 
-from .extensions import csrf, db, login_manager
+from .extensions import csrf, db, limiter, login_manager
 
 # ── Cloudinary configuration ──────────────────────────────────────────
 cloudinary.config(
@@ -59,6 +59,7 @@ def create_app() -> Flask:
     db.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)
+    limiter.init_app(app)
 
     # ── Blueprints ────────────────────────────────────────────────
     from .routes.public import bp as public_bp

@@ -8,7 +8,7 @@ from flask import Blueprint, current_app, flash, redirect, render_template, requ
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.utils import secure_filename
 
-from ..extensions import db
+from ..extensions import db, limiter
 from ..models import (
     CustomRequest,
     Design,
@@ -79,6 +79,7 @@ def login():
 
 
 @bp.post("/login")
+@limiter.limit("5 per minute; 30 per hour")
 def login_post():
     form = AdminLoginForm()
     if not form.validate_on_submit():
@@ -465,6 +466,28 @@ def order_mark_paid(order_id: int):
     order.admin_notes = (request.form.get("admin_notes") or "").strip() or order.admin_notes
     db.session.commit()
     flash("Order marked as Paid.", "success")
+    return redirect(url_for("admin.order_detail", order_id=order_id))
+
+
+@bp.post("/orders/<int:order_id>/mark-completed")
+@login_required
+def order_mark_completed(order_id: int):
+    order = Order.query.get_or_404(order_id)
+    from ..models import ORDER_STATUS_COMPLETED
+    order.status = ORDER_STATUS_COMPLETED
+    db.session.commit()
+    flash("Order marked as Completed.", "success")
+    return redirect(url_for("admin.order_detail", order_id=order_id))
+
+
+@bp.post("/orders/<int:order_id>/mark-delivered")
+@login_required
+def order_mark_delivered(order_id: int):
+    order = Order.query.get_or_404(order_id)
+    from ..models import ORDER_STATUS_DELIVERED
+    order.status = ORDER_STATUS_DELIVERED
+    db.session.commit()
+    flash("Order marked as Delivered.", "success")
     return redirect(url_for("admin.order_detail", order_id=order_id))
 
 

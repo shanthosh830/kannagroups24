@@ -7,7 +7,7 @@ from flask_wtf.file import FileAllowed, FileField
 
 
 class AdminLoginForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email(), Length(max=255)])
+    email = StringField("Admin ID / Email", validators=[DataRequired(), Length(max=255)])
     password = PasswordField("Password", validators=[DataRequired(), Length(min=8, max=255)])
 
 

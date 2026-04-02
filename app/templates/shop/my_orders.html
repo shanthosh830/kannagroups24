@@ -26,7 +26,8 @@
           {% for o in orders %}
             <a class="card" href="{{ url_for('public.order_status', token=o.token, lang=lang) }}">
               <div class="card-title">Order #{{ o.id }} — ₹{{ o.total_inr }}</div>
-              <div class="muted">{{ o.created_at.strftime('%d %b %Y %H:%M') }} • {{ o.status }}</div>
+              <div class="muted" style="margin-bottom:8px">{{ o.created_at.strftime('%d %b %Y %H:%M') }}</div>
+              <div><span class="btn btn-outline" style="padding:4px 8px; font-size:0.8rem">{{ 'Track Order' if lang=='en' else 'ஆர்டர் ட்ராக் செய்' }} &rarr;</span> <span style="font-size:0.9rem; margin-left:8px; display:inline-block;">{{ o.status|title }}</span></div>
               {% if o.transaction_id %}
                 <div class="muted small">{{ 'Txn' if lang=='en' else 'Txn' }}: {{ o.transaction_id }}</div>
               {% endif %}

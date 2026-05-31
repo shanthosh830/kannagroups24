@@ -24,5 +24,231 @@
     </label>
     <button class="btn" type="submit">Upload</button>
   </form>
+
+  <!-- Cropper.js Integration -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- Crop Modal -->
+  <div class="crop-modal" id="cropModal">
+    <div class="crop-modal-backdrop"></div>
+    <div class="crop-modal-card">
+      <div class="crop-modal-header">
+        <h3>Crop Image</h3>
+        <button class="crop-modal-close" id="cropCloseBtn" type="button">&times;</button>
+      </div>
+      <div class="crop-modal-body">
+        <div class="crop-wrapper">
+          <img id="cropImage" src="" alt="Crop Area">
+        </div>
+      </div>
+      <div class="crop-modal-footer">
+        <div class="crop-ratios">
+          <button class="btn-ratio active" data-ratio="NaN" type="button">Free</button>
+          <button class="btn-ratio" data-ratio="1" type="button">1:1 (Square)</button>
+          <button class="btn-ratio" data-ratio="1.3333333333" type="button">4:3</button>
+          <button class="btn-ratio" data-ratio="1.7777777778" type="button">16:9</button>
+        </div>
+        <div class="crop-actions">
+          <button class="btn btn-outline" id="cropCancelBtn" type="button">Cancel</button>
+          <button class="btn" id="cropConfirmBtn" type="button">Crop & Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const fileInput = document.querySelector('input[name="images"]');
+      if (!fileInput) return;
+      
+      const cropModal = document.getElementById('cropModal');
+      const cropImage = document.getElementById('cropImage');
+      const cropCloseBtn = document.getElementById('cropCloseBtn');
+      const cropCancelBtn = document.getElementById('cropCancelBtn');
+      const cropConfirmBtn = document.getElementById('cropConfirmBtn');
+      const ratioButtons = document.querySelectorAll('.btn-ratio');
+      
+      // Create preview grid container
+      const previewGrid = document.createElement('div');
+      previewGrid.className = 'upload-preview-grid';
+      previewGrid.id = 'uploadPreviewGrid';
+      fileInput.parentNode.appendChild(previewGrid);
+      
+      let selectedFiles = []; // items: { id, file, name, previewUrl }
+      let cropper = null;
+      let croppingItemId = null;
+      
+      fileInput.addEventListener('change', function(e) {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+        
+        // Release existing object URLs
+        selectedFiles.forEach(item => URL.revokeObjectURL(item.previewUrl));
+        
+        selectedFiles = files.map((file, idx) => {
+          return {
+            id: 'file_' + idx + '_' + Date.now(),
+            file: file,
+            name: file.name,
+            previewUrl: URL.createObjectURL(file)
+          };
+        });
+        
+        renderGrid();
+      });
+      
+      function renderGrid() {
+        previewGrid.innerHTML = '';
+        if (selectedFiles.length === 0) {
+          previewGrid.style.display = 'none';
+          return;
+        }
+        previewGrid.style.display = 'grid';
+        
+        selectedFiles.forEach((item, index) => {
+          const card = document.createElement('div');
+          card.className = 'preview-card';
+          card.dataset.id = item.id;
+          
+          const badge = document.createElement('div');
+          badge.className = 'preview-badge';
+          badge.textContent = index === 0 ? 'Primary Thumbnail' : 'Image #' + (index + 1);
+          if (index === 0) {
+            badge.style.borderColor = 'var(--accent1)';
+            badge.style.color = 'var(--accent1)';
+            badge.style.fontWeight = 'bold';
+          }
+          
+          const img = document.createElement('img');
+          img.src = item.previewUrl;
+          
+          const actions = document.createElement('div');
+          actions.className = 'preview-actions';
+          
+          const cropBtn = document.createElement('button');
+          cropBtn.type = 'button';
+          cropBtn.className = 'btn btn-sm';
+          cropBtn.textContent = 'Crop';
+          cropBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openCropper(item.id);
+          });
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.className = 'btn btn-sm btn-outline';
+          deleteBtn.style.borderColor = 'var(--coral)';
+          deleteBtn.style.color = 'var(--coral)';
+          deleteBtn.style.marginTop = '4px';
+          deleteBtn.textContent = 'Delete';
+          deleteBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            deleteItem(item.id);
+          });
+          
+          actions.appendChild(cropBtn);
+          actions.appendChild(deleteBtn);
+          card.appendChild(img);
+          card.appendChild(badge);
+          card.appendChild(actions);
+          previewGrid.appendChild(card);
+        });
+        
+        updateFileInput();
+      }
+      
+      function updateFileInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(item => {
+          dt.items.add(item.file);
+        });
+        fileInput.files = dt.files;
+      }
+      
+      function deleteItem(id) {
+        const idx = selectedFiles.findIndex(item => item.id === id);
+        if (idx !== -1) {
+          URL.revokeObjectURL(selectedFiles[idx].previewUrl);
+          selectedFiles.splice(idx, 1);
+          renderGrid();
+        }
+      }
+      
+      function openCropper(id) {
+        const item = selectedFiles.find(item => item.id === id);
+        if (!item) return;
+        
+        croppingItemId = id;
+        cropImage.src = item.previewUrl;
+        openModal();
+      }
+      
+      function openModal() {
+        cropModal.classList.add('open');
+        if (cropper) {
+          cropper.destroy();
+        }
+        cropper = new Cropper(cropImage, {
+          viewMode: 1,
+          responsive: true,
+          checkOrientation: false,
+          autoCropArea: 0.9
+        });
+      }
+      
+      function closeModal() {
+        cropModal.classList.remove('open');
+        if (cropper) {
+          cropper.destroy();
+          cropper = null;
+        }
+        croppingItemId = null;
+      }
+      
+      cropCloseBtn.addEventListener('click', closeModal);
+      cropCancelBtn.addEventListener('click', closeModal);
+      
+      ratioButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          ratioButtons.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const ratio = parseFloat(this.getAttribute('data-ratio'));
+          cropper.setAspectRatio(isNaN(ratio) ? NaN : ratio);
+        });
+      });
+      
+      cropConfirmBtn.addEventListener('click', function() {
+        if (!cropper || !croppingItemId) return;
+        
+        const itemIdx = selectedFiles.findIndex(item => item.id === croppingItemId);
+        if (itemIdx === -1) return;
+        
+        const currentItem = selectedFiles[itemIdx];
+        const canvas = cropper.getCroppedCanvas({
+          maxWidth: 2048,
+          maxHeight: 2048,
+          imageSmoothingQuality: 'high'
+        });
+        
+        canvas.toBlob(function(blob) {
+          if (!blob) return;
+          
+          const croppedFile = new File([blob], currentItem.name, {
+            type: currentItem.file.type,
+            lastModified: Date.now()
+          });
+          
+          URL.revokeObjectURL(currentItem.previewUrl);
+          
+          currentItem.file = croppedFile;
+          currentItem.previewUrl = URL.createObjectURL(croppedFile);
+          
+          renderGrid();
+          closeModal();
+        }, currentItem.file.type);
+      });
+    });
+  </script>
 {% endblock %}
 

@@ -129,7 +129,10 @@
         }
         
         addBtn.disabled = areas.length === 0;
-        if (areas.length === 0) return;
+        if (areas.length === 0) {
+          priceBox.textContent = "{{ 'Select areas to see price' if lang=='en' else 'பகுதிகளை தேர்வு செய்து விலையை பார்க்கவும்' }}";
+          return;
+        }
         const qs = areas.map(a => 'areas=' + encodeURIComponent(a)).join('&');
         const res = await fetch('{{ url_for("public.design_quote", design_id=design.id, lang=lang) }}' + '&' + qs);
         const data = await res.json();

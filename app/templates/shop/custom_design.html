@@ -48,4 +48,172 @@
       <button type="submit" class="btn sbtn">{{ 'Submit Custom Order' if lang=='en' else 'கஸ்டம் ஆர்டர் சமர்ப்பி' }}</button>
     </form>
   </div>
+
+  <!-- Cropper.js Integration -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <!-- Crop Modal -->
+  <div class="crop-modal" id="cropModal">
+    <div class="crop-modal-backdrop"></div>
+    <div class="crop-modal-card">
+      <div class="crop-modal-header">
+        <h3>{{ 'Crop Reference Image' if lang=='en' else 'படத்தை செதுக்குங்கள்' }}</h3>
+        <button class="crop-modal-close" id="cropCloseBtn" type="button">&times;</button>
+      </div>
+      <div class="crop-modal-body">
+        <div class="crop-wrapper">
+          <img id="cropImage" src="" alt="Crop Area">
+        </div>
+      </div>
+      <div class="crop-modal-footer">
+        <div class="crop-ratios">
+          <button class="btn-ratio active" data-ratio="NaN" type="button">{{ 'Free' if lang=='en' else 'ஃப்ரீ' }}</button>
+          <button class="btn-ratio" data-ratio="1" type="button">1:1 ({{ 'Square' if lang=='en' else 'சதுரம்' }})</button>
+          <button class="btn-ratio" data-ratio="1.3333333333" type="button">4:3</button>
+          <button class="btn-ratio" data-ratio="1.7777777778" type="button">16:9</button>
+        </div>
+        <div class="crop-actions">
+          <button class="btn btn-outline" id="cropCancelBtn" type="button">{{ 'Cancel' if lang=='en' else 'ரத்துசெய்' }}</button>
+          <button class="btn" id="cropConfirmBtn" type="button">{{ 'Crop & Save' if lang=='en' else 'செதுக்கி சேமி' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const fileInput = document.getElementById('image');
+      const cropModal = document.getElementById('cropModal');
+      const cropImage = document.getElementById('cropImage');
+      const cropCloseBtn = document.getElementById('cropCloseBtn');
+      const cropCancelBtn = document.getElementById('cropCancelBtn');
+      const cropConfirmBtn = document.getElementById('cropConfirmBtn');
+      const ratioButtons = document.querySelectorAll('.btn-ratio');
+      
+      let cropper = null;
+      let currentFile = null;
+      
+      // Create a nice preview container under the file input
+      const inputParent = fileInput.parentNode;
+      const previewContainer = document.createElement('div');
+      previewContainer.id = 'cropPreviewContainer';
+      previewContainer.style.display = 'none';
+      previewContainer.style.marginTop = '15px';
+      previewContainer.style.position = 'relative';
+      previewContainer.style.maxWidth = '200px';
+      previewContainer.style.borderRadius = 'var(--radius-md)';
+      previewContainer.style.border = '1px solid var(--border)';
+      previewContainer.style.overflow = 'hidden';
+      
+      const previewImg = document.createElement('img');
+      previewImg.style.width = '100%';
+      previewImg.style.display = 'block';
+      previewImg.style.objectFit = 'cover';
+      previewImg.style.maxHeight = '200px';
+      
+      const recropBtn = document.createElement('button');
+      recropBtn.type = 'button';
+      recropBtn.className = 'btn btn-sm';
+      recropBtn.style.position = 'absolute';
+      recropBtn.style.bottom = '8px';
+      recropBtn.style.right = '8px';
+      recropBtn.style.background = 'var(--accent1)';
+      recropBtn.style.border = 'none';
+      recropBtn.style.color = '#fff';
+      recropBtn.textContent = "{{ 'Recrop' if lang=='en' else 'மறுசெதுக்கு' }}";
+      
+      previewContainer.appendChild(previewImg);
+      previewContainer.appendChild(recropBtn);
+      inputParent.appendChild(previewContainer);
+      
+      // When a file is chosen
+      fileInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files && files.length > 0) {
+          currentFile = files[0];
+          startCropping(currentFile);
+        }
+      });
+      
+      function startCropping(file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          cropImage.src = event.target.result;
+          openModal();
+        };
+        reader.readAsDataURL(file);
+      }
+      
+      function openModal() {
+        cropModal.classList.add('open');
+        if (cropper) {
+          cropper.destroy();
+        }
+        cropper = new Cropper(cropImage, {
+          viewMode: 1,
+          responsive: true,
+          checkOrientation: false,
+          autoCropArea: 0.9
+        });
+      }
+      
+      function closeModal() {
+        cropModal.classList.remove('open');
+        if (cropper) {
+          cropper.destroy();
+          cropper = null;
+        }
+      }
+      
+      cropCloseBtn.addEventListener('click', closeModal);
+      cropCancelBtn.addEventListener('click', closeModal);
+      
+      // Aspect ratio selector
+      ratioButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+          ratioButtons.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const ratio = parseFloat(this.getAttribute('data-ratio'));
+          cropper.setAspectRatio(isNaN(ratio) ? NaN : ratio);
+        });
+      });
+      
+      // Recrop button
+      recropBtn.addEventListener('click', function() {
+        if (currentFile) {
+          startCropping(currentFile);
+        }
+      });
+      
+      // Confirm cropping
+      cropConfirmBtn.addEventListener('click', function() {
+        if (!cropper) return;
+        
+        const canvas = cropper.getCroppedCanvas({
+          maxWidth: 2048,
+          maxHeight: 2048,
+          imageSmoothingQuality: 'high'
+        });
+        
+        canvas.toBlob(function(blob) {
+          if (!blob) return;
+          
+          const croppedFile = new File([blob], currentFile.name, {
+            type: currentFile.type,
+            lastModified: Date.now()
+          });
+          
+          const dt = new DataTransfer();
+          dt.items.add(croppedFile);
+          fileInput.files = dt.files;
+          
+          previewImg.src = canvas.toDataURL(currentFile.type);
+          previewContainer.style.display = 'block';
+          
+          closeModal();
+        }, currentFile.type);
+      });
+    });
+  </script>
 {% endblock %}

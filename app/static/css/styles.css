@@ -679,3 +679,184 @@ label{display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:cl
   .sbtn:hover{filter:none;transform:none}
   .sbtn:active{filter:brightness(.95);transform:scale(.97)}
 }
+
+/* ===== Crop Modal and Preview Grid ===== */
+.crop-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-med);
+}
+.crop-modal.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.crop-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 16, 32, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.crop-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 680px;
+  background: rgba(17, 24, 54, 0.95);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6);
+  transform: scale(0.95);
+  transition: transform var(--transition-med);
+  z-index: 10001;
+}
+.crop-modal.open .crop-modal-card {
+  transform: scale(1);
+}
+.crop-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.crop-modal-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(90deg, var(--accent1), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.crop-modal-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 24px;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+.crop-modal-close:hover {
+  color: var(--text);
+}
+.crop-modal-body {
+  padding: 20px;
+  background: #090d1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: min(55vh, 480px);
+}
+.crop-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.crop-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+.crop-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.crop-ratios {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.btn-ratio {
+  background: rgba(17, 24, 54, 0.6);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-ratio:hover {
+  color: var(--text);
+  border-color: var(--accent1);
+}
+.btn-ratio.active {
+  background: rgba(217, 70, 176, 0.15);
+  border-color: var(--accent1);
+  color: var(--text);
+}
+.crop-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+.btn-sm {
+  min-height: 32px !important;
+  padding: 4px 10px !important;
+  font-size: 12px !important;
+  border-radius: 8px !important;
+}
+
+.upload-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  width: 100%;
+}
+.preview-card {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: rgba(17, 24, 54, 0.6);
+  transition: all var(--transition-fast);
+}
+.preview-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+.preview-actions {
+  position: absolute;
+  inset: 0;
+  background: rgba(11, 16, 32, 0.75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+.preview-card:hover .preview-actions {
+  opacity: 1;
+}
+.preview-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  background: rgba(11, 16, 32, 0.8);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+}

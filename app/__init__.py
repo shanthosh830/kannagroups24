@@ -74,10 +74,9 @@ def create_app() -> Flask:
 
         db.create_all()
 
-        # SQLite-only lightweight schema patcher (dev convenience)
-        if is_sqlite:
-            from .db_upgrade import ensure_sqlite_schema_up_to_date
-            ensure_sqlite_schema_up_to_date()
+        # Ensure all columns exist (handles both SQLite and PostgreSQL)
+        from .db_upgrade import ensure_schema_up_to_date
+        ensure_schema_up_to_date()
 
         # Seed default data (idempotent)
         models.ensure_default_services()

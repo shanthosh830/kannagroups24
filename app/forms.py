@@ -13,7 +13,18 @@ class AdminLoginForm(FlaskForm):
 
 class DesignForm(FlaskForm):
     title_en = StringField("Title (English)", validators=[DataRequired(), Length(max=200)])
-    image = FileField("Design image", validators=[DataRequired(), FileAllowed(["jpg", "jpeg", "png", "webp"])])
+    subcategory = SelectField(
+        "Category",
+        choices=[
+            ("", "(None)"),
+            ("chudi", "Chudi"),
+            ("blouse", "Blouse"),
+            ("bridal_blouse", "Bridal Blouse"),
+            ("other", "Other"),
+        ],
+        validators=[Optional()],
+    )
+    image = FileField("Design image", validators=[Optional(), FileAllowed(["jpg", "jpeg", "png", "webp"])])
 
 
 class DesignPricingForm(FlaskForm):

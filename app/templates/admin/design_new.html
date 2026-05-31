@@ -14,6 +14,11 @@
       {{ form.title_en(class_="input", placeholder="Design title") }}
     </label>
     <label>
+      {{ form.subcategory.label }}
+      {{ form.subcategory(class_="input") }}
+      <div class="muted small">Select the design category (Blouse, Chudi, etc.) — leave as None if not applicable.</div>
+    </label>
+    <label>
       Images
       <input type="file" name="images" class="input" accept="image/*" multiple required />
       <div class="muted small">Select one or more images. The first image will be used as the primary thumbnail.</div>

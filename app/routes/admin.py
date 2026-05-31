@@ -141,6 +141,7 @@ def design_new_post(slug: str):
         service_id=service.id,
         title_en=form.title_en.data.strip(),
         title_ta=form.title_en.data.strip(),
+        subcategory=form.subcategory.data.strip() if form.subcategory.data else None,
         image_filename=""  # will set later
     )
 
@@ -202,6 +203,7 @@ def design_details_edit_post(design_id: int):
         
     d.title_en = title_en
     d.title_ta = title_en
+    d.subcategory = request.form.get("subcategory", "").strip() or None
     
     file = request.files.get("image")
     if file and file.filename != "":

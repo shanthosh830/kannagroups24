@@ -4,7 +4,7 @@
 {% block content %}
 <div class="page-header">
   <h1>Edit Design {{ design.title_en }}</h1>
-  <p class="muted">Update the title or upload a new image.</p>
+  <p class="muted">Update the title, category or upload a new image.</p>
 </div>
 
 <form method="post" enctype="multipart/form-data" class="card" style="max-width: 600px;">
@@ -16,6 +16,15 @@
     {% if form.title_en.errors %}
       <div class="form-error">{{ form.title_en.errors[0] }}</div>
     {% endif %}
+  </div>
+
+  <div class="field" style="margin-top:16px;">
+    {{ form.subcategory.label }}
+    {{ form.subcategory(class_="input") }}
+    {% if form.subcategory.errors %}
+      <div class="form-error">{{ form.subcategory.errors[0] }}</div>
+    {% endif %}
+    <span class="muted small">Select the design category (Blouse, Chudi, etc.)</span>
   </div>
 
 

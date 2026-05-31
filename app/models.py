@@ -96,6 +96,7 @@ class Design(db.Model):
 
     title_en = db.Column(db.String(200), nullable=False)
     title_ta = db.Column(db.String(200), nullable=False)
+    subcategory = db.Column(db.String(64), nullable=True)  # blouse, chudi, bridal_blouse, other
 
     # Cached "From ₹X" used for shop filters/sorting
     min_price_inr = db.Column(db.Integer, nullable=True)

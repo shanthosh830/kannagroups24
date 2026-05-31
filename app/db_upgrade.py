@@ -39,6 +39,8 @@ def ensure_sqlite_schema_up_to_date() -> None:
         _add_column("design", "is_new_arrival BOOLEAN NOT NULL DEFAULT 0")
     if not _has_column("design", "stitching_charge_inr"):
         _add_column("design", "stitching_charge_inr INTEGER")
+    if not _has_column("design", "subcategory"):
+        _add_column("design", "subcategory TEXT")
 
     # order_item new column
     if not _has_column("order_item", "selected_areas"):

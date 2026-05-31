@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 import os
+import traceback
 from pathlib import Path
 
 import cloudinary
-from flask import Flask
+from flask import Flask, jsonify
 
 from .extensions import csrf, db, limiter, login_manager
 
@@ -37,8 +39,11 @@ def _resolve_database_url(app: Flask) -> str:
 def create_app() -> Flask:
     app = Flask(__name__, instance_relative_config=True)
 
+    # ── Logging ──────────────────────────────────────────────────
+    logging.basicConfig(level=logging.INFO)
+    logger = logging.getLogger(__name__)
+
     db_url = _resolve_database_url(app)
-    is_sqlite = db_url.startswith("sqlite")
 
     app.config.from_mapping(
         SECRET_KEY=os.environ.get("SECRET_KEY", "dev-secret-change-me"),
@@ -75,12 +80,41 @@ def create_app() -> Flask:
         db.create_all()
 
         # Ensure all columns exist (handles both SQLite and PostgreSQL)
-        from .db_upgrade import ensure_schema_up_to_date
-        ensure_schema_up_to_date()
+        try:
+            from .db_upgrade import ensure_schema_up_to_date
+            ensure_schema_up_to_date()
+            logger.info("Schema upgrade completed successfully.")
+        except Exception as e:
+            logger.error(f"Schema upgrade failed: {e}")
+            logger.error(traceback.format_exc())
+            # Don't crash the app — it may still work if columns already exist
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
 
         # Seed default data (idempotent)
-        models.ensure_default_services()
-        models.ensure_default_settings()
+        try:
+            models.ensure_default_services()
+            models.ensure_default_settings()
+        except Exception as e:
+            logger.error(f"Seed data failed: {e}")
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
+    # ── Error handler (shows real errors instead of generic 500) ──
+    @app.errorhandler(500)
+    def handle_500(e):
+        error_tb = traceback.format_exc()
+        logger.error(f"500 Error: {e}\n{error_tb}")
+        return f"""<html><body style="font-family:monospace;padding:2rem;background:#1a1a2e;color:#e0e0e0">
+<h1 style="color:#ff6b6b">500 — Server Error</h1>
+<h3 style="color:#ffd93d">{type(e).__name__}: {e}</h3>
+<pre style="background:#16213e;padding:1rem;border-radius:8px;overflow:auto;color:#a8d8ea">{error_tb}</pre>
+<p style="color:#888">This debug page is temporary. Check Render logs for full details.</p>
+</body></html>""", 500
 
     # ── Template globals ──────────────────────────────────────────
     @app.context_processor

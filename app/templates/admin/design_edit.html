@@ -18,13 +18,6 @@
     {% endif %}
   </div>
 
-  <div class="field">
-    {{ form.title_ta.label }}
-    {{ form.title_ta }}
-    {% if form.title_ta.errors %}
-      <div class="form-error">{{ form.title_ta.errors[0] }}</div>
-    {% endif %}
-  </div>
 
   <div class="field" style="margin-top:20px;">
     {{ form.image.label }} current: {{ design.image_filename }}

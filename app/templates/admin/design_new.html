@@ -4,7 +4,7 @@
 {% block content %}
   <div class="page-header">
     <h1>Upload Design</h1>
-    <p class="muted">{{ service.name_en }} / {{ service.name_ta }}</p>
+    <p class="muted">{{ service.name_en }}</p>
   </div>
 
   <form class="form" method="post" enctype="multipart/form-data" action="{{ url_for('admin.design_new_post', slug=service.slug) }}">
@@ -12,10 +12,6 @@
     <label>
       {{ form.title_en.label }}
       {{ form.title_en(class_="input", placeholder="Design title") }}
-    </label>
-    <label>
-      {{ form.title_ta.label }}
-      {{ form.title_ta(class_="input", placeholder="டிசைன் தலைப்பு") }}
     </label>
     <label>
       Images

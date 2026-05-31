@@ -13,7 +13,6 @@ class AdminLoginForm(FlaskForm):
 
 class DesignForm(FlaskForm):
     title_en = StringField("Title (English)", validators=[DataRequired(), Length(max=200)])
-    title_ta = StringField("Title (Tamil)", validators=[DataRequired(), Length(max=200)])
     image = FileField("Design image", validators=[DataRequired(), FileAllowed(["jpg", "jpeg", "png", "webp"])])
 
 

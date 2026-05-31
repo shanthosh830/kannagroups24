@@ -140,7 +140,7 @@ def design_new_post(slug: str):
     d = Design(
         service_id=service.id,
         title_en=form.title_en.data.strip(),
-        title_ta=form.title_ta.data.strip(),
+        title_ta=form.title_en.data.strip(),
         image_filename=""  # will set later
     )
 
@@ -195,14 +195,13 @@ def design_details_edit(design_id: int):
 def design_details_edit_post(design_id: int):
     d = Design.query.get_or_404(design_id)
     title_en = request.form.get("title_en", "").strip()
-    title_ta = request.form.get("title_ta", "").strip()
     
-    if not title_en or not title_ta:
-        flash("Titles cannot be empty.", "error")
+    if not title_en:
+        flash("Title cannot be empty.", "error")
         return redirect(url_for("admin.design_details_edit", design_id=d.id))
         
     d.title_en = title_en
-    d.title_ta = title_ta
+    d.title_ta = title_en
     
     file = request.files.get("image")
     if file and file.filename != "":

@@ -11,7 +11,6 @@
     {% for s in services %}
       <div class="card">
         <div class="card-title">{{ s.name_en }}</div>
-        <div class="muted">{{ s.name_ta }}</div>
         <div class="card-actions">
           <a class="btn btn-outline" href="{{ url_for('public.service_detail', slug=s.slug) }}" target="_blank" rel="noreferrer">View public</a>
           {% if s.slug == 'stitching' %}

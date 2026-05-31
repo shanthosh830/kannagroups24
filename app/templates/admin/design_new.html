@@ -23,6 +23,44 @@
       <input type="file" name="images" class="input" accept="image/*" multiple required />
       <div class="muted small">Select one or more images. The first image will be used as the primary thumbnail.</div>
     </label>
+
+    <div class="detail-card" style="margin-top:1.5rem">
+      <h3>New Arrivals</h3>
+      <label>{{ form.is_new_arrival.label }} {{ form.is_new_arrival(class_="input") }}</label>
+      <p class="muted small">If enabled, this design appears in the New Arrivals section.</p>
+    </div>
+
+    <div class="detail-card">
+      <h3>Enable customer options</h3>
+      <label>{{ form.enable_fn.label }} {{ form.enable_fn(class_="input") }}</label>
+      <label>{{ form.enable_bn.label }} {{ form.enable_bn(class_="input") }}</label>
+      <label>{{ form.enable_sl.label }} {{ form.enable_sl(class_="input") }}</label>
+      <label>{{ form.enable_bn_butta.label }} {{ form.enable_bn_butta(class_="input") }}</label>
+      <label>{{ form.enable_sl_butta.label }} {{ form.enable_sl_butta(class_="input") }}</label>
+    </div>
+
+    <div class="detail-card">
+      <h3>Enter stitches per option</h3>
+      <label>{{ form.stitches_fn.label }} {{ form.stitches_fn(class_="input", placeholder="e.g. 12000") }}</label>
+      <label>{{ form.stitches_bn.label }} {{ form.stitches_bn(class_="input", placeholder="e.g. 8000") }}</label>
+      <label>{{ form.stitches_sl_single.label }} {{ form.stitches_sl_single(class_="input", placeholder="e.g. 5000") }}</label>
+      <label>{{ form.stitches_bn_butta.label }} {{ form.stitches_bn_butta(class_="input", placeholder="e.g. 3000") }}</label>
+      <label>{{ form.stitches_sl_butta_single.label }} {{ form.stitches_sl_butta_single(class_="input", placeholder="e.g. 2000") }}</label>
+      <p class="muted small">Customers will not see stitch counts — they are used only for pricing calculation.</p>
+    </div>
+
+    <div class="detail-card">
+      <h3>Design charge (optional)</h3>
+      <label>{{ form.design_charge_inr.label }} {{ form.design_charge_inr(class_="input", placeholder="e.g. 150") }}</label>
+      <p class="muted small">If set, it will be added (first order only by default).</p>
+    </div>
+
+    <div class="detail-card">
+      <h3>Stitching charge (optional)</h3>
+      <label>{{ form.stitching_charge_inr.label }} {{ form.stitching_charge_inr(class_="input", placeholder="e.g. 500") }}</label>
+      <p class="muted small">If set, it will be added when the customer selects the stitching option.</p>
+    </div>
+
     <button class="btn" type="submit">Upload</button>
   </form>
 

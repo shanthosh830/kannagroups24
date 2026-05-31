@@ -142,7 +142,10 @@ def design_new_post(slug: str):
         title_en=form.title_en.data.strip(),
         title_ta=form.title_en.data.strip(),
         subcategory=form.subcategory.data.strip() if form.subcategory.data else None,
-        image_filename=""  # will set later
+        image_filename="",  # will set later
+        is_new_arrival=form.is_new_arrival.data == "yes",
+        design_charge_inr=form.design_charge_inr.data,
+        stitching_charge_inr=form.stitching_charge_inr.data,
     )
 
     db.session.add(d)
@@ -167,12 +170,27 @@ def design_new_post(slug: str):
     # Set first image as main image
     d.image_filename = first_image_url
 
-    # Create stitches
-    db.session.add(DesignStitches(design_id=d.id))
+    # Create stitches with form data
+    ds = DesignStitches(
+        design_id=d.id,
+        enable_fn=form.enable_fn.data == "yes",
+        enable_bn=form.enable_bn.data == "yes",
+        enable_sl=form.enable_sl.data == "yes",
+        enable_bn_butta=form.enable_bn_butta.data == "yes",
+        enable_sl_butta=form.enable_sl_butta.data == "yes",
+        stitches_fn=max(0, int(form.stitches_fn.data or 0)),
+        stitches_bn=max(0, int(form.stitches_bn.data or 0)),
+        stitches_sl_single=max(0, int(form.stitches_sl_single.data or 0)),
+        stitches_bn_butta=max(0, int(form.stitches_bn_butta.data or 0)),
+        stitches_sl_butta_single=max(0, int(form.stitches_sl_butta_single.data or 0)),
+    )
+    db.session.add(ds)
+    db.session.flush()
 
+    recompute_design_min_price(d)
     db.session.commit()
-    flash("Design uploaded successfully.", "success")
-    return redirect(url_for("admin.design_edit_pricing", design_id=d.id))
+    flash("Design uploaded successfully with pricing.", "success")
+    return redirect(url_for("admin.designs_list", slug=service.slug))
 
 
 @bp.get("/services/<slug>/designs")

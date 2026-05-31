@@ -26,6 +26,24 @@ class DesignForm(FlaskForm):
     )
     image = FileField("Design image", validators=[Optional(), FileAllowed(["jpg", "jpeg", "png", "webp"])])
 
+    # --- Stitch fields (optional during upload) ---
+    is_new_arrival = SelectField("New Arrival badge", choices=[("no", "No"), ("yes", "Yes")], validators=[Optional()])
+
+    enable_fn = SelectField("Front Neck option", choices=[("yes", "Enabled"), ("no", "Disabled")], validators=[Optional()])
+    enable_bn = SelectField("Back Neck option", choices=[("yes", "Enabled"), ("no", "Disabled")], validators=[Optional()])
+    enable_sl = SelectField("Sleeve option (single sleeve ×2)", choices=[("yes", "Enabled"), ("no", "Disabled")], validators=[Optional()])
+    enable_bn_butta = SelectField("Back Neck with Butta option", choices=[("yes", "Enabled"), ("no", "Disabled")], validators=[Optional()])
+    enable_sl_butta = SelectField("Sleeve with Butta option (single ×2)", choices=[("yes", "Enabled"), ("no", "Disabled")], validators=[Optional()])
+
+    stitches_fn = IntegerField("Front Neck stitches", validators=[Optional()])
+    stitches_bn = IntegerField("Back Neck stitches", validators=[Optional()])
+    stitches_sl_single = IntegerField("Single Sleeve stitches", validators=[Optional()])
+    stitches_bn_butta = IntegerField("Back Neck with Butta stitches", validators=[Optional()])
+    stitches_sl_butta_single = IntegerField("Single Sleeve with Butta stitches", validators=[Optional()])
+
+    design_charge_inr = IntegerField("Design/Digitizing charge (₹)", validators=[Optional()])
+    stitching_charge_inr = IntegerField("Stitching charge (₹)", validators=[Optional()])
+
 
 class DesignPricingForm(FlaskForm):
     is_new_arrival = SelectField("New Arrival badge", choices=[("yes", "Yes"), ("no", "No")], validators=[DataRequired()])

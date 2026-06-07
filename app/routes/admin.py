@@ -128,6 +128,11 @@ def design_new_post(slug: str):
     service = Service.query.filter_by(slug=slug).first_or_404()
     form = DesignForm()
     if not form.validate_on_submit():
+        # Flash specific form errors so admin can see what's wrong
+        for field_name, errors in form.errors.items():
+            if field_name != 'csrf_token':
+                for err in errors:
+                    flash(f"{field_name}: {err}", "error")
         return render_template("admin/design_new.html", service=service, form=form), 400
 
     files = request.files.getlist("images")
@@ -136,61 +141,75 @@ def design_new_post(slug: str):
         flash("At least one image is required.", "error")
         return render_template("admin/design_new.html", service=service, form=form), 400
 
-    # Create design first
-    d = Design(
-        service_id=service.id,
-        title_en=form.title_en.data.strip(),
-        title_ta=form.title_en.data.strip(),
-        subcategory=form.subcategory.data.strip() if form.subcategory.data else None,
-        image_filename="",  # will set later
-        is_new_arrival=form.is_new_arrival.data == "yes",
-        design_charge_inr=form.design_charge_inr.data,
-        stitching_charge_inr=form.stitching_charge_inr.data,
-    )
-
-    db.session.add(d)
-    db.session.flush()  # get ID
-
-    # Upload all images
-    first_image_url = None
-
-    for file in files:
-        result = cloudinary.uploader.upload(file, folder="kannagroups/designs")
-        image_url = result["secure_url"]
-
-        if not first_image_url:
-            first_image_url = image_url
-
-        img = DesignImage(
-            design_id=d.id,
-            image_url=image_url
+    try:
+        # Create design first
+        d = Design(
+            service_id=service.id,
+            title_en=form.title_en.data.strip(),
+            title_ta=form.title_en.data.strip(),
+            subcategory=form.subcategory.data.strip() if form.subcategory.data else None,
+            image_filename="",  # will set later
+            is_new_arrival=form.is_new_arrival.data == "yes",
+            design_charge_inr=form.design_charge_inr.data,
+            stitching_charge_inr=form.stitching_charge_inr.data,
         )
-        db.session.add(img)
 
-    # Set first image as main image
-    d.image_filename = first_image_url
+        db.session.add(d)
+        db.session.flush()  # get ID
 
-    # Create stitches with form data
-    ds = DesignStitches(
-        design_id=d.id,
-        enable_fn=form.enable_fn.data == "yes",
-        enable_bn=form.enable_bn.data == "yes",
-        enable_sl=form.enable_sl.data == "yes",
-        enable_bn_butta=form.enable_bn_butta.data == "yes",
-        enable_sl_butta=form.enable_sl_butta.data == "yes",
-        stitches_fn=max(0, int(form.stitches_fn.data or 0)),
-        stitches_bn=max(0, int(form.stitches_bn.data or 0)),
-        stitches_sl_single=max(0, int(form.stitches_sl_single.data or 0)),
-        stitches_bn_butta=max(0, int(form.stitches_bn_butta.data or 0)),
-        stitches_sl_butta_single=max(0, int(form.stitches_sl_butta_single.data or 0)),
-    )
-    db.session.add(ds)
-    db.session.flush()
+        # Upload all images to Cloudinary
+        first_image_url = None
 
-    recompute_design_min_price(d)
-    db.session.commit()
-    flash("Design uploaded successfully with pricing.", "success")
-    return redirect(url_for("admin.designs_list", slug=service.slug))
+        for file in files:
+            if not file or not file.filename:
+                continue
+            result = cloudinary.uploader.upload(file, folder="kannagroups/designs")
+            image_url = result["secure_url"]
+
+            if not first_image_url:
+                first_image_url = image_url
+
+            img = DesignImage(
+                design_id=d.id,
+                image_url=image_url
+            )
+            db.session.add(img)
+
+        # Set first image as main image
+        if first_image_url:
+            d.image_filename = first_image_url
+        else:
+            flash("No images were uploaded successfully.", "error")
+            db.session.rollback()
+            return render_template("admin/design_new.html", service=service, form=form), 400
+
+        # Create stitches with form data
+        ds = DesignStitches(
+            design_id=d.id,
+            enable_fn=form.enable_fn.data == "yes",
+            enable_bn=form.enable_bn.data == "yes",
+            enable_sl=form.enable_sl.data == "yes",
+            enable_bn_butta=form.enable_bn_butta.data == "yes",
+            enable_sl_butta=form.enable_sl_butta.data == "yes",
+            stitches_fn=max(0, int(form.stitches_fn.data or 0)),
+            stitches_bn=max(0, int(form.stitches_bn.data or 0)),
+            stitches_sl_single=max(0, int(form.stitches_sl_single.data or 0)),
+            stitches_bn_butta=max(0, int(form.stitches_bn_butta.data or 0)),
+            stitches_sl_butta_single=max(0, int(form.stitches_sl_butta_single.data or 0)),
+        )
+        db.session.add(ds)
+        db.session.flush()
+
+        recompute_design_min_price(d)
+        db.session.commit()
+        flash("Design uploaded successfully with pricing.", "success")
+        return redirect(url_for("admin.designs_list", slug=service.slug))
+
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Design upload failed: {e}")
+        flash(f"Upload failed: {e}", "error")
+        return render_template("admin/design_new.html", service=service, form=form), 500
 
 
 @bp.get("/services/<slug>/designs")

@@ -125,7 +125,8 @@ def create_app() -> Flask:
         def img_url(filename):
             """Return Cloudinary URL directly, or fall back to local uploads route."""
             if not filename:
-                return ""
+                # Return a simple grey placeholder SVG data-URI
+                return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%23334155' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' fill='%2394a3b8' text-anchor='middle' dy='.3em' font-size='18'%3ENo Image%3C/text%3E%3C/svg%3E"
             if filename.startswith(("http://", "https://")):
                 return filename
             return url_for("public.uploads", filename=filename)

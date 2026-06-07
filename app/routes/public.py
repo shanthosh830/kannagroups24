@@ -78,11 +78,13 @@ def service_detail(slug: str):
     if slug == "embroidery":
         # Tabs: custom design (separate page), our designs, new arrivals (latest uploads)
         tab = request.args.get("tab", "our")
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
 
-        cutoff = datetime.utcnow() - timedelta(days=14)
+        cutoff = datetime.now(timezone.utc) - timedelta(days=14)
         new_arrivals = [
-            d for d in designs if d.is_new_arrival or (d.created_at and d.created_at >= cutoff)
+            d for d in designs if d.is_new_arrival or (
+                d.created_at and d.created_at.replace(tzinfo=d.created_at.tzinfo or timezone.utc) >= cutoff
+            )
         ]
         return render_template(
             "shop/embroidery.html",

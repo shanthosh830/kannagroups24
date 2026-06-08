@@ -8,8 +8,9 @@
 </div>
 
 <div class="card">
-  <div style="margin-bottom: 16px;">
+  <div style="margin-bottom: 16px; display:flex; gap:10px; flex-wrap:wrap;">
     <a href="{{ url_for('admin.design_new', slug=service.slug) }}" class="btn">Upload New Design</a>
+    <a href="{{ url_for('admin.design_bulk_upload', slug=service.slug) }}" class="btn" style="background:linear-gradient(90deg,#10b981,#059669)">⚡ Bulk Upload</a>
   </div>
   
   <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">

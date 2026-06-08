@@ -4,40 +4,82 @@
 {% block content %}
 <div class="page-header">
   <h1>Edit Design {{ design.title_en }}</h1>
-  <p class="muted">Update the title, category or upload a new image.</p>
+  <p class="muted">Update title, category, image, stitches & pricing.</p>
 </div>
 
-<form method="post" enctype="multipart/form-data" class="card" style="max-width: 600px;">
+<form method="post" enctype="multipart/form-data" class="form" style="max-width:700px">
   {{ form.csrf_token }}
 
-  <div class="field">
-    {{ form.title_en.label }}
-    {{ form.title_en }}
-    {% if form.title_en.errors %}
-      <div class="form-error">{{ form.title_en.errors[0] }}</div>
-    {% endif %}
+  <!-- Basic Info -->
+  <div class="detail-card">
+    <h3>Basic Info</h3>
+    <label>
+      {{ form.title_en.label }}
+      {{ form.title_en(class_="input", placeholder="Design title") }}
+      {% if form.title_en.errors %}
+        <div class="form-error">{{ form.title_en.errors[0] }}</div>
+      {% endif %}
+    </label>
+    <label style="margin-top:12px">
+      {{ form.subcategory.label }}
+      {{ form.subcategory(class_="input") }}
+      <span class="muted small">Select the design category (Blouse, Chudi, etc.)</span>
+    </label>
   </div>
 
-  <div class="field" style="margin-top:16px;">
-    {{ form.subcategory.label }}
-    {{ form.subcategory(class_="input") }}
-    {% if form.subcategory.errors %}
-      <div class="form-error">{{ form.subcategory.errors[0] }}</div>
-    {% endif %}
-    <span class="muted small">Select the design category (Blouse, Chudi, etc.)</span>
-  </div>
-
-
-  <div class="field" style="margin-top:20px;">
-    {{ form.image.label }} current: {{ design.image_filename }}
-    <div style="margin-bottom:8px;">
-      <img src="{{ img_url(design.image_filename) }}" style="width: 100px; border-radius: 4px;">
+  <!-- Image -->
+  <div class="detail-card">
+    <h3>Image</h3>
+    <div style="margin-bottom:8px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <img src="{{ img_url(design.image_filename) }}" style="width:100px;height:100px;object-fit:cover;border-radius:8px;border:1px solid var(--border)">
+      <span class="muted small">Current thumbnail</span>
     </div>
-    {{ form.image }}
-    <div class="muted small">Leave empty to keep the current image</div>
+    {{ form.image(class_="input") }}
+    <div class="muted small" style="margin-top:4px">Leave empty to keep the current image</div>
   </div>
 
-  <div style="margin-top: 24px;">
+  <!-- New Arrival -->
+  <div class="detail-card">
+    <h3>New Arrivals</h3>
+    <label>{{ form.is_new_arrival.label }} {{ form.is_new_arrival(class_="input") }}</label>
+    <p class="muted small">If enabled, this design appears in the New Arrivals section.</p>
+  </div>
+
+  <!-- Stitch enable toggles -->
+  <div class="detail-card">
+    <h3>Enable customer options</h3>
+    <label>{{ form.enable_fn.label }} {{ form.enable_fn(class_="input") }}</label>
+    <label>{{ form.enable_bn.label }} {{ form.enable_bn(class_="input") }}</label>
+    <label>{{ form.enable_sl.label }} {{ form.enable_sl(class_="input") }}</label>
+    <label>{{ form.enable_bn_butta.label }} {{ form.enable_bn_butta(class_="input") }}</label>
+    <label>{{ form.enable_sl_butta.label }} {{ form.enable_sl_butta(class_="input") }}</label>
+  </div>
+
+  <!-- Stitch counts -->
+  <div class="detail-card">
+    <h3>Stitches per option</h3>
+    <label>{{ form.stitches_fn.label }} {{ form.stitches_fn(class_="input", placeholder="e.g. 12000") }}</label>
+    <label>{{ form.stitches_bn.label }} {{ form.stitches_bn(class_="input", placeholder="e.g. 8000") }}</label>
+    <label>{{ form.stitches_sl_single.label }} {{ form.stitches_sl_single(class_="input", placeholder="e.g. 5000") }}</label>
+    <label>{{ form.stitches_bn_butta.label }} {{ form.stitches_bn_butta(class_="input", placeholder="e.g. 3000") }}</label>
+    <label>{{ form.stitches_sl_butta_single.label }} {{ form.stitches_sl_butta_single(class_="input", placeholder="e.g. 2000") }}</label>
+    <p class="muted small">Customers will not see stitch counts — used only for pricing.</p>
+  </div>
+
+  <!-- Charges -->
+  <div class="detail-card">
+    <h3>Design charge (optional)</h3>
+    <label>{{ form.design_charge_inr.label }} {{ form.design_charge_inr(class_="input", placeholder="e.g. 150") }}</label>
+    <p class="muted small">If set, added to the price (first order only by default).</p>
+  </div>
+
+  <div class="detail-card">
+    <h3>Stitching charge (optional)</h3>
+    <label>{{ form.stitching_charge_inr.label }} {{ form.stitching_charge_inr(class_="input", placeholder="e.g. 500") }}</label>
+    <p class="muted small">If set, added when the customer selects the stitching option.</p>
+  </div>
+
+  <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap">
     <button type="submit" class="btn">Save Changes</button>
     <a href="{{ url_for('admin.designs_list', slug=service.slug) }}" class="btn btn-outline">Cancel</a>
   </div>

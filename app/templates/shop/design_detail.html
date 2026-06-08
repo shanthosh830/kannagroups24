@@ -58,7 +58,7 @@
             {% if options and options.enable_sl %}<label class="area-check"><input type="checkbox" name="areas" value="sl"> {{ 'Sleeve' if lang=='en' else 'சட்டை' }}</label>{% endif %}
             {% if options and options.enable_bn_butta %}<label class="area-check"><input type="checkbox" name="areas" value="bn_butta"> {{ 'Back Neck with Butta' if lang=='en' else 'பின் கழுத்து + புத்தா' }}</label>{% endif %}
             {% if options and options.enable_sl_butta %}<label class="area-check"><input type="checkbox" name="areas" value="sl_butta"> {{ 'Sleeve with Butta' if lang=='en' else 'சட்டை + புத்தா' }}</label>{% endif %}
-            {% if options %}
+            {% if options and (options.enable_fn or options.enable_bn or options.enable_sl or options.enable_bn_butta or options.enable_sl_butta) %}
               <div style="margin-top:8px;">
                 <label class="area-check" style="display:inline-flex;">
                   <input type="checkbox" id="stitchingCheck" value="stitching"> 

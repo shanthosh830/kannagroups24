@@ -1,0 +1,229 @@
+{% extends "admin/layout.html" %}
+{% block title %}Bulk Upload Designs - {{ service.name_en }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Bulk Upload Designs</h1>
+  <p class="muted">{{ service.name_en }} — Add multiple designs with stitches & pricing in one go.</p>
+</div>
+
+<form id="bulkForm" method="post" enctype="multipart/form-data"
+      action="{{ url_for('admin.design_bulk_upload_post', slug=service.slug) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="design_count" id="designCount" value="1">
+
+  <div id="designEntries"></div>
+
+  <div style="display:flex;gap:12px;margin:24px 0;flex-wrap:wrap">
+    <button type="button" class="btn" id="addDesignBtn">＋ Add Another Design</button>
+    <button type="submit" class="btn" id="submitAllBtn" style="background:linear-gradient(90deg,#10b981,#059669)">
+      Upload All Designs
+    </button>
+    <a href="{{ url_for('admin.designs_list', slug=service.slug) }}" class="btn btn-outline">Cancel</a>
+  </div>
+
+  <div id="progressArea" style="display:none;margin:16px 0">
+    <div class="detail-card">
+      <h3 id="progressText">Uploading…</h3>
+      <div style="width:100%;height:8px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden;margin-top:8px">
+        <div id="progressBar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--accent1),var(--accent2));border-radius:99px;transition:width .3s"></div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- Design Entry Template (cloned via JS) -->
+<template id="designTemplate">
+  <div class="bulk-entry" data-index="__IDX__">
+    <div class="bulk-entry-header">
+      <span class="bulk-entry-num">Design #<span class="entry-number">1</span></span>
+      <button type="button" class="btn btn-sm btn-outline bulk-remove-btn"
+              style="border-color:var(--coral);color:var(--coral)">✕ Remove</button>
+    </div>
+
+    <div class="bulk-entry-body">
+      <!-- Row 1: Image + Basic Info -->
+      <div class="bulk-row">
+        <div class="bulk-col bulk-col-img">
+          <label>Image(s) <span style="color:var(--coral)">*</span>
+            <input type="file" name="images___IDX__" accept="image/*" multiple required class="input">
+          </label>
+          <div class="bulk-preview-grid"></div>
+        </div>
+        <div class="bulk-col bulk-col-info">
+          <label>Title <span style="color:var(--coral)">*</span>
+            <input type="text" name="title___IDX__" class="input" placeholder="Design title" required>
+          </label>
+          <label>Category
+            <select name="subcategory___IDX__" class="input">
+              <option value="">(None)</option>
+              <option value="chudi">Chudi</option>
+              <option value="blouse">Blouse</option>
+              <option value="bridal_blouse">Bridal Blouse</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label>New Arrival
+            <select name="is_new_arrival___IDX__" class="input">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <!-- Collapsible: Stitches & Pricing -->
+      <details class="bulk-details" open>
+        <summary class="bulk-summary">Stitches & Pricing</summary>
+        <div class="bulk-stitch-grid">
+          <!-- Enable toggles -->
+          <div class="bulk-field">
+            <label>Front Neck
+              <select name="enable_fn___IDX__" class="input"><option value="yes">Enabled</option><option value="no">Disabled</option></select>
+            </label>
+          </div>
+          <div class="bulk-field">
+            <label>FN Stitches
+              <input type="number" name="stitches_fn___IDX__" class="input" placeholder="e.g. 12000" value="0">
+            </label>
+          </div>
+
+          <div class="bulk-field">
+            <label>Back Neck
+              <select name="enable_bn___IDX__" class="input"><option value="yes">Enabled</option><option value="no">Disabled</option></select>
+            </label>
+          </div>
+          <div class="bulk-field">
+            <label>BN Stitches
+              <input type="number" name="stitches_bn___IDX__" class="input" placeholder="e.g. 8000" value="0">
+            </label>
+          </div>
+
+          <div class="bulk-field">
+            <label>Sleeve (×2)
+              <select name="enable_sl___IDX__" class="input"><option value="yes">Enabled</option><option value="no">Disabled</option></select>
+            </label>
+          </div>
+          <div class="bulk-field">
+            <label>SL Stitches (single)
+              <input type="number" name="stitches_sl___IDX__" class="input" placeholder="e.g. 5000" value="0">
+            </label>
+          </div>
+
+          <div class="bulk-field">
+            <label>BN Butta
+              <select name="enable_bn_butta___IDX__" class="input"><option value="no">Disabled</option><option value="yes">Enabled</option></select>
+            </label>
+          </div>
+          <div class="bulk-field">
+            <label>BN Butta Stitches
+              <input type="number" name="stitches_bn_butta___IDX__" class="input" placeholder="e.g. 3000" value="0">
+            </label>
+          </div>
+
+          <div class="bulk-field">
+            <label>SL Butta (×2)
+              <select name="enable_sl_butta___IDX__" class="input"><option value="no">Disabled</option><option value="yes">Enabled</option></select>
+            </label>
+          </div>
+          <div class="bulk-field">
+            <label>SL Butta Stitches (single)
+              <input type="number" name="stitches_sl_butta___IDX__" class="input" placeholder="e.g. 2000" value="0">
+            </label>
+          </div>
+
+          <!-- Charges -->
+          <div class="bulk-field">
+            <label>Design Charge ₹
+              <input type="number" name="design_charge___IDX__" class="input" placeholder="e.g. 150">
+            </label>
+          </div>
+          <div class="bulk-field">
+            <label>Stitching Charge ₹
+              <input type="number" name="stitching_charge___IDX__" class="input" placeholder="e.g. 500">
+            </label>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</template>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const container = document.getElementById('designEntries');
+  const template = document.getElementById('designTemplate');
+  const countInput = document.getElementById('designCount');
+  const addBtn = document.getElementById('addDesignBtn');
+  let nextIndex = 0;
+
+  function addEntry() {
+    const html = template.innerHTML.replace(/__IDX__/g, nextIndex);
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = html;
+    const entry = wrapper.firstElementChild;
+    container.appendChild(entry);
+
+    // Set entry number
+    updateNumbers();
+
+    // Remove button
+    entry.querySelector('.bulk-remove-btn').addEventListener('click', function() {
+      if (container.children.length <= 1) {
+        alert('You need at least one design.');
+        return;
+      }
+      entry.remove();
+      updateNumbers();
+    });
+
+    // Image preview
+    const fileInput = entry.querySelector('input[type="file"]');
+    const previewGrid = entry.querySelector('.bulk-preview-grid');
+    fileInput.addEventListener('change', function() {
+      previewGrid.innerHTML = '';
+      const files = Array.from(this.files);
+      files.forEach((file, i) => {
+        const url = URL.createObjectURL(file);
+        const card = document.createElement('div');
+        card.className = 'bulk-preview-card';
+        card.innerHTML = '<img src="' + url + '"><span class="bulk-preview-label">' +
+          (i === 0 ? 'Primary' : '#' + (i+1)) + '</span>';
+        previewGrid.appendChild(card);
+      });
+    });
+
+    nextIndex++;
+    countInput.value = container.children.length;
+  }
+
+  function updateNumbers() {
+    const entries = container.querySelectorAll('.bulk-entry');
+    entries.forEach((e, i) => {
+      e.querySelector('.entry-number').textContent = i + 1;
+    });
+    countInput.value = entries.length;
+  }
+
+  addBtn.addEventListener('click', addEntry);
+
+  // Start with one entry
+  addEntry();
+
+  // Submit feedback
+  document.getElementById('bulkForm').addEventListener('submit', function() {
+    const btn = document.getElementById('submitAllBtn');
+    btn.textContent = 'Uploading…';
+    btn.disabled = true;
+    document.getElementById('progressArea').style.display = 'block';
+    // Simulate progress (real progress would need XHR)
+    let pct = 0;
+    const bar = document.getElementById('progressBar');
+    const interval = setInterval(function() {
+      pct = Math.min(pct + Math.random() * 15, 90);
+      bar.style.width = pct + '%';
+    }, 500);
+  });
+});
+</script>
+{% endblock %}

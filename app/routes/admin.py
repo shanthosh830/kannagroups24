@@ -212,6 +212,126 @@ def design_new_post(slug: str):
         return render_template("admin/design_new.html", service=service, form=form), 500
 
 
+@bp.get("/services/<slug>/designs/bulk-upload")
+@login_required
+def design_bulk_upload(slug: str):
+    service = Service.query.filter_by(slug=slug).first_or_404()
+    return render_template("admin/design_bulk_upload.html", service=service)
+
+
+@bp.post("/services/<slug>/designs/bulk-upload")
+@login_required
+def design_bulk_upload_post(slug: str):
+    service = Service.query.filter_by(slug=slug).first_or_404()
+
+    try:
+        count = int(request.form.get("design_count", 0))
+    except (ValueError, TypeError):
+        count = 0
+
+    if count < 1:
+        flash("No designs to upload.", "error")
+        return redirect(url_for("admin.design_bulk_upload", slug=slug))
+
+    # Collect all indices present in the form
+    indices = []
+    for key in request.form:
+        if key.startswith("title_"):
+            try:
+                idx = int(key.split("_", 1)[1])
+                indices.append(idx)
+            except (ValueError, IndexError):
+                pass
+    indices.sort()
+
+    if not indices:
+        flash("No designs found in submission.", "error")
+        return redirect(url_for("admin.design_bulk_upload", slug=slug))
+
+    success_count = 0
+    errors = []
+
+    for idx in indices:
+        title = (request.form.get(f"title_{idx}") or "").strip()
+        if not title:
+            errors.append(f"Design #{idx+1}: Title is required.")
+            continue
+
+        files = request.files.getlist(f"images_{idx}")
+        if not files or not files[0].filename:
+            errors.append(f"Design #{idx+1} ({title}): At least one image is required.")
+            continue
+
+        try:
+            d = Design(
+                service_id=service.id,
+                title_en=title,
+                title_ta=title,
+                subcategory=request.form.get(f"subcategory_{idx}", "").strip() or None,
+                image_filename="",
+                is_new_arrival=request.form.get(f"is_new_arrival_{idx}") == "yes",
+                design_charge_inr=_safe_int(request.form.get(f"design_charge_{idx}")),
+                stitching_charge_inr=_safe_int(request.form.get(f"stitching_charge_{idx}")),
+            )
+            db.session.add(d)
+            db.session.flush()
+
+            first_url = None
+            for f in files:
+                if not f or not f.filename:
+                    continue
+                result = cloudinary.uploader.upload(f, folder="kannagroups/designs")
+                url = result["secure_url"]
+                if not first_url:
+                    first_url = url
+                db.session.add(DesignImage(design_id=d.id, image_url=url))
+
+            if first_url:
+                d.image_filename = first_url
+            else:
+                errors.append(f"Design #{idx+1} ({title}): Image upload failed.")
+                db.session.rollback()
+                continue
+
+            ds = DesignStitches(
+                design_id=d.id,
+                enable_fn=request.form.get(f"enable_fn_{idx}") == "yes",
+                enable_bn=request.form.get(f"enable_bn_{idx}") == "yes",
+                enable_sl=request.form.get(f"enable_sl_{idx}") == "yes",
+                enable_bn_butta=request.form.get(f"enable_bn_butta_{idx}") == "yes",
+                enable_sl_butta=request.form.get(f"enable_sl_butta_{idx}") == "yes",
+                stitches_fn=max(0, _safe_int(request.form.get(f"stitches_fn_{idx}"))),
+                stitches_bn=max(0, _safe_int(request.form.get(f"stitches_bn_{idx}"))),
+                stitches_sl_single=max(0, _safe_int(request.form.get(f"stitches_sl_{idx}"))),
+                stitches_bn_butta=max(0, _safe_int(request.form.get(f"stitches_bn_butta_{idx}"))),
+                stitches_sl_butta_single=max(0, _safe_int(request.form.get(f"stitches_sl_butta_{idx}"))),
+            )
+            db.session.add(ds)
+            db.session.flush()
+            recompute_design_min_price(d)
+            db.session.commit()
+            success_count += 1
+
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Bulk upload design #{idx+1} failed: {e}")
+            errors.append(f"Design #{idx+1} ({title}): {e}")
+
+    if success_count:
+        flash(f"Successfully uploaded {success_count} design(s)!", "success")
+    for err in errors:
+        flash(err, "error")
+
+    return redirect(url_for("admin.designs_list", slug=service.slug))
+
+
+def _safe_int(val, default=0):
+    try:
+        return int(val) if val else default
+    except (ValueError, TypeError):
+        return default
+
+
 @bp.get("/services/<slug>/designs")
 @login_required
 def designs_list(slug: str):
@@ -224,7 +344,27 @@ def designs_list(slug: str):
 @login_required
 def design_details_edit(design_id: int):
     d = Design.query.get_or_404(design_id)
-    form = DesignForm(obj=d)
+    # Ensure stitches row exists
+    if not d.stitches:
+        db.session.add(DesignStitches(design_id=d.id))
+        db.session.commit()
+    ds = d.stitches
+    form = DesignForm(
+        obj=d,
+        is_new_arrival="yes" if d.is_new_arrival else "no",
+        enable_fn="yes" if ds.enable_fn else "no",
+        enable_bn="yes" if ds.enable_bn else "no",
+        enable_sl="yes" if ds.enable_sl else "no",
+        enable_bn_butta="yes" if ds.enable_bn_butta else "no",
+        enable_sl_butta="yes" if ds.enable_sl_butta else "no",
+        stitches_fn=ds.stitches_fn,
+        stitches_bn=ds.stitches_bn,
+        stitches_sl_single=ds.stitches_sl_single,
+        stitches_bn_butta=ds.stitches_bn_butta,
+        stitches_sl_butta_single=ds.stitches_sl_butta_single,
+        design_charge_inr=d.design_charge_inr,
+        stitching_charge_inr=d.stitching_charge_inr,
+    )
     return render_template("admin/design_edit.html", design=d, form=form, service=d.service)
 
 
@@ -233,24 +373,46 @@ def design_details_edit(design_id: int):
 def design_details_edit_post(design_id: int):
     d = Design.query.get_or_404(design_id)
     title_en = request.form.get("title_en", "").strip()
-    
+
     if not title_en:
         flash("Title cannot be empty.", "error")
         return redirect(url_for("admin.design_details_edit", design_id=d.id))
-        
+
+    # Basic fields
     d.title_en = title_en
     d.title_ta = title_en
     d.subcategory = request.form.get("subcategory", "").strip() or None
-    
+    d.is_new_arrival = request.form.get("is_new_arrival") == "yes"
+
+    # Image
     file = request.files.get("image")
     if file and file.filename != "":
         result = cloudinary.uploader.upload(file, folder="kannagroups/designs")
-        # Ensure we set the primary thumbnail
         d.image_filename = result["secure_url"]
-        # And insert it as a design image linked to the design
         img = DesignImage(design_id=d.id, image_url=result["secure_url"])
         db.session.add(img)
 
+    # Charges
+    d.design_charge_inr = _safe_int(request.form.get("design_charge_inr"))
+    d.stitching_charge_inr = _safe_int(request.form.get("stitching_charge_inr"))
+
+    # Stitches
+    if not d.stitches:
+        db.session.add(DesignStitches(design_id=d.id))
+        db.session.flush()
+    ds = d.stitches
+    ds.enable_fn = request.form.get("enable_fn") == "yes"
+    ds.enable_bn = request.form.get("enable_bn") == "yes"
+    ds.enable_sl = request.form.get("enable_sl") == "yes"
+    ds.enable_bn_butta = request.form.get("enable_bn_butta") == "yes"
+    ds.enable_sl_butta = request.form.get("enable_sl_butta") == "yes"
+    ds.stitches_fn = max(0, _safe_int(request.form.get("stitches_fn")))
+    ds.stitches_bn = max(0, _safe_int(request.form.get("stitches_bn")))
+    ds.stitches_sl_single = max(0, _safe_int(request.form.get("stitches_sl_single")))
+    ds.stitches_bn_butta = max(0, _safe_int(request.form.get("stitches_bn_butta")))
+    ds.stitches_sl_butta_single = max(0, _safe_int(request.form.get("stitches_sl_butta_single")))
+
+    recompute_design_min_price(d)
     db.session.commit()
     flash("Design updated.", "success")
     return redirect(url_for("admin.designs_list", slug=d.service.slug))
